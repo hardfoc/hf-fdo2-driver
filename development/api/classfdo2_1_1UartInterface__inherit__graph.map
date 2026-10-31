@@ -1,5 +1,5 @@
 <map id="fdo2::UartInterface&lt; Derived &gt;" name="fdo2::UartInterface&lt; Derived &gt;">
-<area shape="rect" id="Node000001" title="CRTP base for PSUP serial transport." alt="" coords="5,20,151,60"/>
-<area shape="rect" id="Node000002" href="$classhf__fdo2__examples_1_1Fdo2EspIdfUart.html" title="Template UART bridge: one concrete type per (port, TX, RX, baud) tuple." alt="" coords="199,5,425,75"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,37,198,37,198,43,165,43"/>
+<area shape="rect" id="Node000001" title="CRTP base for PSUP serial transport." alt="" coords="5,22,150,67"/>
+<area shape="rect" id="Node000002" href="$classhf__fdo2__examples_1_1Fdo2EspIdfUart.html" title="Template UART bridge: one concrete type per (port, TX, RX, baud) tuple." alt="" coords="198,5,423,84"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,42,200,44,195,45,165,47"/>
 </map>

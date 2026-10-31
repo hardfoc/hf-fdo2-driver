@@ -1,5 +1,5 @@
-warning: ignoring unsupported tag 'PAGE_OUTLINE_PANEL' at line 1763, file /tmp/doxyfile.IMK0wm
-warning: Tag 'DOT_TRANSPARENT' at line 2786 of file '/tmp/doxyfile.IMK0wm' has become obsolete.
+warning: ignoring unsupported tag 'PAGE_OUTLINE_PANEL' at line 1763, file /tmp/doxyfile.jtiUtc
+warning: Tag 'DOT_TRANSPARENT' at line 2786 of file '/tmp/doxyfile.jtiUtc' has become obsolete.
          To avoid this warning please remove this line from your configuration file or upgrade it using "doxygen -u"
 /home/runner/work/hf-fdo2-driver/hf-fdo2-driver/docs/datasheet/README.md:2: warning: found more than one \mainpage comment block! (first occurrence: /home/runner/work/hf-fdo2-driver/hf-fdo2-driver/README.md, line 2), Skipping current block!
 /home/runner/work/hf-fdo2-driver/hf-fdo2-driver/inc/fdo2.hpp:21: warning: unable to resolve reference to 'fdo2_version.h' for \ref command

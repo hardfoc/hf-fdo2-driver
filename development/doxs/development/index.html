@@ -98,7 +98,7 @@ $(function(){initNavTree('index.html',''); initResizable(); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="md_README"></a> <b>Header-only C++17 UART client for the PyroScience FDO2-G2 optical oxygen sensor</b> (data sheet <b>v5</b>, <b>§4</b> UART API): <code>#VERS</code>, <code>#IDNR</code>, <code>#MOXY</code>, <code>#MRAW</code>, <code>#LOGO</code>, with engineering-unit decoding, optional <b>CRC</b> suffix stripping, and <code>#ERRO</code> codes via <code>LastDeviceErrorCode()</code>. Default baud after power-up is <b>19200</b> 8N1.</p>
-<p><a href="https://en.cppreference.com/w/cpp/17"><img src="https://img.shields.io/badge/C%2B%2B-17-blue.svg" alt="C++" style="pointer-events: none;" class="inline"/></a> [<img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" style="pointer-events: none;" class="inline"/>](LICENSE) <a href="https://github.com/N3b3x/hf-fdo2-driver/actions/workflows/esp32-examples-build-ci.yml"><img src="https://github.com/N3b3x/hf-fdo2-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main" alt="CI" style="pointer-events: none;" class="inline"/></a> <a href="https://n3b3x.github.io/hf-fdo2-driver/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Docs" class="inline"/></a></p>
+<p><a href="https://en.cppreference.com/w/cpp/17"><img src="https://img.shields.io/badge/C%2B%2B-17-blue.svg" alt="C++" style="pointer-events: none;" class="inline"/></a> [<img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" style="pointer-events: none;" class="inline"/>](LICENSE) <a href="https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/esp32-examples-build-ci.yml"><img src="https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main" alt="CI" style="pointer-events: none;" class="inline"/></a> <a href="https://hardfoc.github.io/hf-fdo2-driver/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="Docs" class="inline"/></a></p>
 <h1><a class="anchor" id="autotoc_md1"></a>
 Table of contents</h1>
 <ol type="1">
@@ -113,7 +113,7 @@ Table of contents</h1>
 <h1><a class="anchor" id="autotoc_md2"></a>
 Overview</h1>
 <blockquote class="doxtable">
-<p>&zwj;<b><a href="https://n3b3x.github.io/hf-fdo2-driver/">Live documentation (GitHub Pages)</a></b> — Installation, UART protocol tables, CMake, API summary, and troubleshooting. </p>
+<p>&zwj;<b><a href="https://hardfoc.github.io/hf-fdo2-driver/">Live documentation (GitHub Pages)</a></b> — Installation, UART protocol tables, CMake, API summary, and troubleshooting. </p>
 </blockquote>
 <p>The driver targets <b>read-only measurement</b> commands suitable for host firmware: fast **<code>#MOXY</code>** for control loops and richer **<code>#MRAW</code>** when you need vent-side pressure <b>P</b>, internal RH <b>H</b>, dphi, and intensities. Flash-writing commands (<code>#CALO</code>, <code>#CAHI</code>, <code>#CRCE</code>, <code>#SETM</code>, <code>#BAUD</code>, …) are intentionally <b>not</b> implemented here (endurance and power-stability constraints in the data sheet).</p>
 <h1><a class="anchor" id="autotoc_md3"></a>

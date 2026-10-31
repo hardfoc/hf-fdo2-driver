@@ -1,33 +1,33 @@
 <map id="inc/fdo2.hpp" name="inc/fdo2.hpp">
-<area shape="rect" id="Node000001" title="Umbrella header for the HF&#45;FDO2 (FDO2&#45;G2) UART driver." alt="" coords="348,5,451,31"/>
-<area shape="rect" id="Node000002" href="$fdo2__uart__interface_8hpp.html" title="CRTP byte transport for the PyroScience Unified Protocol (PSUP)." alt="" coords="68,152,245,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="381,33,189,147,186,143,379,29"/>
-<area shape="rect" id="Node000006" href="$fdo2__types_8hpp.html" title="FDO2&#45;G2 UART types, scaling, and status decoding (PyroScience data sheet v5)." alt="" coords="270,152,393,177"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="396,32,345,141,340,138,391,30"/>
-<area shape="rect" id="Node000009" href="$fdo2__driver_8hpp.html" title="FDO2&#45;G2 UART command client (PyroScience data sheet v5, §4)." alt="" coords="389,79,511,104"/>
-<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="410,29,436,66,432,69,406,33"/>
-<area shape="rect" id="Node000014" title=" " alt="" coords="536,79,655,104"/>
-<area shape="poly" id="edge17_Node000001_Node000014" title=" " alt="" coords="432,28,551,71,550,76,430,33"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="121,225,192,251"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="159,178,159,212,154,212,154,178"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="217,225,283,251"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="173,175,226,215,222,219,170,179"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="5,225,97,251"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="141,180,81,220,78,215,138,175"/>
-<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="320,179,275,218,272,214,317,175"/>
-<area shape="rect" id="Node000007" title=" " alt="" coords="308,225,371,251"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="335,177,339,212,334,212,330,178"/>
-<area shape="rect" id="Node000008" title=" " alt="" coords="567,225,664,251"/>
-<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="378,175,557,219,556,225,376,180"/>
-<area shape="poly" id="edge11_Node000009_Node000002" title=" " alt="" coords="403,107,218,151,217,146,402,101"/>
-<area shape="poly" id="edge10_Node000009_Node000006" title=" " alt="" coords="432,106,364,147,361,142,430,102"/>
-<area shape="poly" id="edge16_Node000009_Node000008" title=" " alt="" coords="512,100,667,126,733,140,764,150,772,164,771,177,764,189,752,199,718,215,678,227,676,222,716,210,749,194,760,185,766,176,766,165,760,154,731,145,666,131,511,105"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="417,152,483,177"/>
-<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="453,104,453,138,447,138,447,104"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="507,152,569,177"/>
-<area shape="poly" id="edge13_Node000009_Node000011" title=" " alt="" coords="466,102,515,141,511,145,462,106"/>
-<area shape="rect" id="Node000012" title=" " alt="" coords="593,152,659,177"/>
-<area shape="poly" id="edge14_Node000009_Node000012" title=" " alt="" coords="479,102,585,144,583,149,477,106"/>
-<area shape="rect" id="Node000013" title=" " alt="" coords="683,152,750,177"/>
-<area shape="poly" id="edge15_Node000009_Node000013" title=" " alt="" coords="494,101,671,148,669,154,492,107"/>
+<area shape="rect" id="Node000001" title="Umbrella header for the HF&#45;FDO2 (FDO2&#45;G2) UART driver." alt="" coords="346,5,447,33"/>
+<area shape="rect" id="Node000002" href="$fdo2__uart__interface_8hpp.html" title="CRTP byte transport for the PyroScience Unified Protocol (PSUP)." alt="" coords="67,157,243,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="377,36,190,151,187,146,374,31"/>
+<area shape="rect" id="Node000006" href="$fdo2__types_8hpp.html" title="FDO2&#45;G2 UART types, scaling, and status decoding (PyroScience data sheet v5)." alt="" coords="268,157,389,184"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="393,32,343,144,338,141,388,35"/>
+<area shape="rect" id="Node000009" href="$fdo2__driver_8hpp.html" title="FDO2&#45;G2 UART command client (PyroScience data sheet v5, §4)." alt="" coords="384,81,507,109"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="406,31,431,68,426,67,404,36"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="531,81,648,109"/>
+<area shape="poly" id="edge17_Node000001_Node000014" title=" " alt="" coords="431,31,544,75,539,76,431,36"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="120,232,190,260"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="157,183,157,218,153,215,153,187"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="214,232,280,260"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="172,182,222,223,216,223,171,187"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,232,97,260"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="139,184,83,226,80,221,134,186"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="316,184,274,224,271,220,311,186"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="304,232,366,260"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="331,183,335,218,330,215,328,187"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="560,232,656,260"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="379,182,548,228,543,229,378,188"/>
+<area shape="poly" id="edge11_Node000009_Node000002" title=" " alt="" coords="391,111,223,155,221,150,396,108"/>
+<area shape="poly" id="edge10_Node000009_Node000006" title=" " alt="" coords="427,108,363,151,360,146,422,110"/>
+<area shape="poly" id="edge16_Node000009_Node000008" title=" " alt="" coords="507,105,663,134,755,155,763,169,763,182,756,194,744,204,711,221,672,234,671,229,709,216,741,200,752,190,758,181,758,170,752,159,662,139,507,110"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="414,157,478,184"/>
+<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="447,107,448,142,443,139,444,111"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="502,157,562,184"/>
+<area shape="poly" id="edge13_Node000009_Node000011" title=" " alt="" coords="462,107,508,147,503,146,460,112"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="587,157,651,184"/>
+<area shape="poly" id="edge14_Node000009_Node000012" title=" " alt="" coords="477,107,577,150,572,151,476,112"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="676,157,741,184"/>
+<area shape="poly" id="edge15_Node000009_Node000013" title=" " alt="" coords="493,107,663,156,658,156,492,112"/>
 </map>

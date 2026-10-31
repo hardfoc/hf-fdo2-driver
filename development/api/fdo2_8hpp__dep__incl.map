@@ -1,11 +1,11 @@
 <map id="inc/fdo2.hpp" name="inc/fdo2.hpp">
-<area shape="rect" id="Node000001" title="Umbrella header for the HF&#45;FDO2 (FDO2&#45;G2) UART driver." alt="" coords="165,5,268,31"/>
-<area shape="rect" id="Node000002" href="$fdo2__minimal__example_8cpp.html" title=" " alt="" coords="5,181,212,221"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,39,145,56,123,80,112,105,107,132,108,181,103,181,102,132,107,104,118,77,142,52,170,34"/>
-<area shape="rect" id="Node000003" href="$fdo2__sensor__demo_8cpp.html" title=" " alt="" coords="243,181,419,221"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="262,34,290,52,314,77,326,103,333,132,335,181,330,181,328,132,321,105,309,80,286,56,259,39"/>
-<area shape="rect" id="Node000004" href="$hf__fdo2__esp__uart_8hpp.html" title="Reusable ESP&#45;IDF UART transport for fdo2::Driver (CRTP, zero virtual calls)." alt="" coords="133,79,300,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="219,44,219,79,214,79,214,44"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="177,145,132,183,129,179,174,140"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="261,140,310,179,306,183,258,144"/>
+<area shape="rect" id="Node000001" title="Umbrella header for the HF&#45;FDO2 (FDO2&#45;G2) UART driver." alt="" coords="171,5,272,33"/>
+<area shape="rect" id="Node000002" href="$fdo2__minimal__example_8cpp.html" title=" " alt="" coords="5,191,212,235"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,42,150,60,129,82,117,109,111,138,109,191,104,190,105,138,112,108,125,80,146,56,176,39"/>
+<area shape="rect" id="Node000003" href="$fdo2__sensor__demo_8cpp.html" title=" " alt="" coords="248,191,423,235"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,38,297,56,319,80,332,108,338,138,340,192,335,189,333,138,327,109,314,82,294,60,270,43"/>
+<area shape="rect" id="Node000004" href="$hf__fdo2__esp__uart_8hpp.html" title="Reusable ESP&#45;IDF UART transport for fdo2::Driver (CRTP, zero virtual calls)." alt="" coords="139,81,304,143"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="223,46,224,82,219,80,220,51"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="178,152,135,192,132,188,173,154"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="269,151,313,190,308,190,267,156"/>
 </map>

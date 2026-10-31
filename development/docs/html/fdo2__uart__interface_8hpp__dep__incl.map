@@ -1,16 +1,16 @@
 <map id="inc/fdo2_uart_interface.hpp" name="inc/fdo2_uart_interface.hpp">
-<area shape="rect" id="Node000001" title="CRTP byte transport for the PyroScience Unified Protocol (PSUP)." alt="" coords="117,5,317,31"/>
-<area shape="rect" id="Node000002" href="$fdo2_8hpp.html" title="Umbrella header for the HF&#45;FDO2 (FDO2&#45;G2) UART driver." alt="" coords="165,152,268,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,44,191,72,189,88,190,103,199,129,211,150,207,153,195,131,185,105,183,88,186,71,199,42"/>
-<area shape="rect" id="Node000006" href="$fdo2__driver_8hpp.html" title="FDO2&#45;G2 UART command client (PyroScience data sheet v5, §4)." alt="" coords="199,79,346,104"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="237,40,266,77,262,80,232,43"/>
-<area shape="rect" id="Node000003" href="$fdo2__minimal__example_8cpp.html" title=" " alt="" coords="5,328,212,368"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="173,185,145,203,123,227,112,252,107,279,108,328,103,328,102,279,107,250,118,224,142,199,170,181"/>
-<area shape="rect" id="Node000004" href="$fdo2__sensor__demo_8cpp.html" title=" " alt="" coords="243,328,419,368"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="262,181,290,199,314,224,326,250,333,278,335,328,330,328,328,279,321,252,309,227,286,203,259,186"/>
-<area shape="rect" id="Node000005" href="$hf__fdo2__esp__uart_8hpp.html" title="Reusable ESP&#45;IDF UART transport for fdo2::Driver (CRTP, zero virtual calls)." alt="" coords="133,225,300,280"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="219,191,219,225,214,225,214,191"/>
-<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="177,291,132,330,129,326,174,287"/>
-<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="261,287,310,326,306,330,258,291"/>
-<area shape="poly" id="edge8_Node000006_Node000002" title=" " alt="" coords="257,117,228,154,224,150,253,113"/>
+<area shape="rect" id="Node000001" title="CRTP byte transport for the PyroScience Unified Protocol (PSUP)." alt="" coords="117,5,316,33"/>
+<area shape="rect" id="Node000002" href="$fdo2_8hpp.html" title="Umbrella header for the HF&#45;FDO2 (FDO2&#45;G2) UART driver." alt="" coords="166,157,267,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,44,190,82,188,95,190,108,199,134,211,156,205,156,194,136,185,109,182,95,185,80,200,49"/>
+<area shape="rect" id="Node000006" href="$fdo2__driver_8hpp.html" title="FDO2&#45;G2 UART command client (PyroScience data sheet v5, §4)." alt="" coords="200,81,345,109"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="236,43,265,80,260,81,235,48"/>
+<area shape="rect" id="Node000003" href="$fdo2__minimal__example_8cpp.html" title=" " alt="" coords="5,342,212,387"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="167,193,144,211,124,234,113,261,107,290,108,343,103,341,102,289,108,259,120,231,141,207,171,190"/>
+<area shape="rect" id="Node000004" href="$fdo2__sensor__demo_8cpp.html" title=" " alt="" coords="242,342,418,387"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="265,189,292,207,313,231,326,259,333,289,334,343,330,340,328,290,321,261,309,234,288,211,264,195"/>
+<area shape="rect" id="Node000005" href="$hf__fdo2__esp__uart_8hpp.html" title="Reusable ESP&#45;IDF UART transport for fdo2::Driver (CRTP, zero virtual calls)." alt="" coords="134,232,299,294"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="218,198,219,233,214,231,215,202"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="175,304,134,344,130,339,170,306"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="263,302,308,342,302,341,262,307"/>
+<area shape="poly" id="edge8_Node000006_Node000002" title=" " alt="" coords="255,119,228,158,224,155,252,123"/>
 </map>
