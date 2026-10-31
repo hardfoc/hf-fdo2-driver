@@ -10,9 +10,9 @@ has_children: true
 
 # HF-FDO2 driver documentation
 
-This site mirrors the [`docs/`](https://github.com/N3b3x/hf-fdo2-driver/tree/main/docs) folder in the repository and documents the **PyroScience FDO2-G2** optical oxygen sensor UART interface (**data sheet v5, §4**) as implemented by this header-only driver.
+This site mirrors the [`docs/`](https://github.com/hardfoc/hf-fdo2-driver/tree/main/docs) folder in the repository and documents the **PyroScience FDO2-G2** optical oxygen sensor UART interface (**data sheet v5, §4**) as implemented by this header-only driver.
 
-> **Browse on GitHub:** [repository home](https://github.com/N3b3x/hf-fdo2-driver) · [Issues](https://github.com/N3b3x/hf-fdo2-driver/issues)
+> **Browse on GitHub:** [repository home](https://github.com/hardfoc/hf-fdo2-driver) · [Issues](https://github.com/hardfoc/hf-fdo2-driver/issues)
 
 ## Documentation structure
 
@@ -53,6 +53,6 @@ This site mirrors the [`docs/`](https://github.com/N3b3x/hf-fdo2-driver/tree/mai
 
 - **Build or flash:** [Examples](examples.md) and [Troubleshooting](troubleshooting.md)
 - **Protocol details:** [UART protocol](uart_protocol.md)
-- **API:** [API reference](api_reference.md) and headers under [`inc/`](https://github.com/N3b3x/hf-fdo2-driver/tree/main/inc)
+- **API:** [API reference](api_reference.md) and headers under [`inc/`](https://github.com/hardfoc/hf-fdo2-driver/tree/main/inc)
 
 **Next:** [Installation →](installation.md)

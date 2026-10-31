@@ -8,7 +8,7 @@ permalink: /docs/api-reference/
 
 # API reference
 
-Authoritative declarations live under [`inc/`](https://github.com/N3b3x/hf-fdo2-driver/tree/main/inc).
+Authoritative declarations live under [`inc/`](https://github.com/hardfoc/hf-fdo2-driver/tree/main/inc).
 Run **Doxygen** (`doxygen _config/Doxyfile`) for HTML cross-links.
 
 ## Transport — `fdo2::UartInterface<Derived>`

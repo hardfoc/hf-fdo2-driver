@@ -39,7 +39,7 @@ hf-fdo2-driver/
 ## Submodule (recommended)
 
 ```bash
-git submodule add https://github.com/N3b3x/hf-fdo2-driver.git third_party/hf-fdo2-driver
+git submodule add https://github.com/hardfoc/hf-fdo2-driver.git third_party/hf-fdo2-driver
 git submodule update --init --recursive third_party/hf-fdo2-driver
 ```
 

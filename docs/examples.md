@@ -37,6 +37,6 @@ Both apps use **`UART_NUM_1`** with default pins **TX = GPIO47**, **RX = GPIO21*
 **`fdo2_sensor_demo`** runs **200 ms** `#MOXY` plus **3 s** `#MRAW` for bench O₂
 testing.
 
-See [`examples/esp32/README.md`](https://github.com/N3b3x/hf-fdo2-driver/blob/main/examples/esp32/README.md) for matrix and override notes.
+See [`examples/esp32/README.md`](https://github.com/hardfoc/hf-fdo2-driver/blob/main/examples/esp32/README.md) for matrix and override notes.
 
 **Next:** [Troubleshooting →](troubleshooting.md)
