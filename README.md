@@ -12,15 +12,15 @@ This branch contains the versioned documentation for this repository.
 
 ## Access
 
-- **Latest**: [https://N3b3x.github.io/hf-fdo2-driver/](https://N3b3x.github.io/hf-fdo2-driver/)
-- **All Versions**: [https://N3b3x.github.io/hf-fdo2-driver/version_selector.html](https://N3b3x.github.io/hf-fdo2-driver/version_selector.html)
+- **Latest**: [https://hardfoc.github.io/hf-fdo2-driver/](https://hardfoc.github.io/hf-fdo2-driver/)
+- **All Versions**: [https://hardfoc.github.io/hf-fdo2-driver/version_selector.html](https://hardfoc.github.io/hf-fdo2-driver/version_selector.html)
 
 ## Current Version
 
 - **Version**: development
 - **Type**: development
-- **Deployed**: 2026-10-03T14:46:27Z
-- **Commit**: c7bed2783752b686c1c2fbb898f6c7ddc6ee9f40
+- **Deployed**: 2026-10-31T08:20:28Z
+- **Commit**: 70103132aec22b45671e4611a44fa58eefd4507b
 
 ---
 
