@@ -35,7 +35,7 @@ the fault clears (see bit definitions in `fdo2::moxy_status`).
 
 ## Need more help?
 
-Open an [issue](https://github.com/N3b3x/hf-fdo2-driver/issues) with UART capture,
+Open an [issue](https://github.com/hardfoc/hf-fdo2-driver/issues) with UART capture,
 firmware **R** from `#VERS`, and software revision.
 
 **Next:** [Datasheet and links →](datasheet/README.md)

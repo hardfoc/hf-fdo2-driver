@@ -114,19 +114,19 @@ toggle_auto_mode: true
 # -----------------------------------------------------------------------------
 aux_links:
   "📚 GitHub Repository":
-    - "https://github.com/N3b3x/hf-fdo2-driver"
+    - "https://github.com/hardfoc/hf-fdo2-driver"
   "🐛 Report Issues":
-    - "https://github.com/N3b3x/hf-fdo2-driver/issues"
+    - "https://github.com/hardfoc/hf-fdo2-driver/issues"
   "⭐ Star on GitHub":
-    - "https://github.com/N3b3x/hf-fdo2-driver/stargazers"
+    - "https://github.com/hardfoc/hf-fdo2-driver/stargazers"
 
 # -----------------------------------------------------------------------------
 # Footer Customization
 # -----------------------------------------------------------------------------
 footer_content: >
   Built with ❤️ using <a href='https://just-the-docs.github.io/just-the-docs/'>Just the Docs</a> •
-  <a href='https://github.com/N3b3x/hf-fdo2-driver/blob/main/LICENSE'>MIT License</a> •
-  <a href='https://github.com/N3b3x/hf-fdo2-driver'>View on GitHub</a>
+  <a href='https://github.com/hardfoc/hf-fdo2-driver/blob/main/LICENSE'>MIT License</a> •
+  <a href='https://github.com/hardfoc/hf-fdo2-driver'>View on GitHub</a>
 
 # -----------------------------------------------------------------------------
 # File Exclusions
@@ -168,7 +168,7 @@ seo:
   description: >
     Header-only C++17 UART client for PyroScience FDO2-G2 (#MOXY, #MRAW, #VERS)
     with ESP32-S3 example
-  url: "https://n3b3x.github.io/hf-fdo2-driver"
+  url: "https://hardfoc.github.io/hf-fdo2-driver"
   twitter:
     card: "summary_large_image"
     site: "@n3b3x"
@@ -182,7 +182,7 @@ seo:
 social:
   name: "HardFOC FDO2-G2 Driver"
   links:
-    - "https://github.com/N3b3x/hf-fdo2-driver"
+    - "https://github.com/hardfoc/hf-fdo2-driver"
     - "https://github.com/n3b3x"
 
 # -----------------------------------------------------------------------------
@@ -201,9 +201,9 @@ just_the_docs:
   nav_fold: true
   nav_external_links:
     - title: "📚 GitHub Repository"
-      url: "https://github.com/N3b3x/hf-fdo2-driver"
+      url: "https://github.com/hardfoc/hf-fdo2-driver"
     - title: "🐛 Issues"
-      url: "https://github.com/N3b3x/hf-fdo2-driver/issues"
+      url: "https://github.com/hardfoc/hf-fdo2-driver/issues"
   head_custom: _includes/head_custom.html
   custom_css:
     - assets/css/custom.css
