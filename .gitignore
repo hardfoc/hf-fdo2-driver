@@ -48,3 +48,6 @@ venv/
 *.map
 *.lst
 site/
+
+# Host test build
+build-host/

@@ -28,6 +28,15 @@ if(HF_FDO2_ENABLE_WARNINGS)
       INTERFACE -Wall -Wextra -Wpedantic)
 endif()
 
+#===============================================================================
+# Optional: host unit tests and the compiled documentation snippets (tests/)
+#===============================================================================
+option(HF_FDO2_BUILD_TESTS "Build the host unit tests in tests/" OFF)
+if(HF_FDO2_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
 include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
