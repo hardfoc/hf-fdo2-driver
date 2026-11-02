@@ -1,11 +1,3 @@
----
-layout: default
-title: "UART protocol"
-nav_order: 3
-parent: "Documentation"
-permalink: /docs/uart-protocol/
----
-
 # FDO2-G2 UART protocol
 
 This driver follows **PyroScience FDO2-G2**, document version **v5 (03/2026)**,

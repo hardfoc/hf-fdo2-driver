@@ -1,11 +1,3 @@
----
-layout: default
-title: "Hardware setup"
-nav_order: 4
-parent: "Documentation"
-permalink: /docs/hardware-setup/
----
-
 # Hardware setup
 
 ## Logic levels

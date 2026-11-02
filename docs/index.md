@@ -1,13 +1,3 @@
----
-layout: default
-title: "Documentation"
-description: "Complete documentation for the HardFOC PyroScience FDO2-G2 UART driver"
-nav_order: 2
-parent: "HardFOC FDO2-G2 Driver"
-permalink: /docs/
-has_children: true
----
-
 # HF-FDO2 driver documentation
 
 This site mirrors the [`docs/`](https://github.com/hardfoc/hf-fdo2-driver/tree/main/docs) folder in the repository and documents the **PyroScience FDO2-G2** optical oxygen sensor UART interface (**data sheet v5, §4**) as implemented by this header-only driver.

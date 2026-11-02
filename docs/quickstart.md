@@ -1,11 +1,3 @@
----
-layout: default
-title: "Quick start"
-nav_order: 2
-parent: "Documentation"
-permalink: /docs/quickstart/
----
-
 # Quick start
 
 You supply a **CRTP** adapter that inherits `fdo2::UartInterface<YourType>` and

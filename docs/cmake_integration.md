@@ -1,11 +1,3 @@
----
-layout: default
-title: "CMake integration"
-nav_order: 5
-parent: "Documentation"
-permalink: /docs/cmake-integration/
----
-
 # CMake integration
 
 ## Standalone consumer

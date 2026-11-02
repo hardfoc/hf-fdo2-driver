@@ -1,11 +1,3 @@
----
-layout: default
-title: "HardFOC FDO2-G2 Driver"
-description: "Hardware-agnostic C++17 UART client for PyroScience FDO2-G2 optical oxygen sensors"
-nav_order: 1
-permalink: /
----
-
 # HF-FDO2 Driver
 
 **Header-only C++17 UART client for the PyroScience FDO2-G2 optical oxygen sensor**

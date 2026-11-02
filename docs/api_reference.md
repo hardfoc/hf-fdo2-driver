@@ -1,11 +1,3 @@
----
-layout: default
-title: "API reference"
-nav_order: 6
-parent: "Documentation"
-permalink: /docs/api-reference/
----
-
 # API reference
 
 Authoritative declarations live under [`inc/`](https://github.com/hardfoc/hf-fdo2-driver/tree/main/inc).

@@ -1,11 +1,3 @@
----
-layout: default
-title: "Troubleshooting"
-nav_order: 8
-parent: "Documentation"
-permalink: /docs/troubleshooting/
----
-
 # Troubleshooting
 
 ## No response or garbage data

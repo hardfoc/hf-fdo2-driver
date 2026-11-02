@@ -1,11 +1,3 @@
----
-layout: default
-title: "Examples"
-nav_order: 7
-parent: "Documentation"
-permalink: /docs/examples/
----
-
 # Examples
 
 ## ESP32-S3 (`examples/esp32`)
