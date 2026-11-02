@@ -75,7 +75,8 @@ send the command again.
 | Timeout | Default | Used by |
 | --- | --- | --- |
 | Measurement | 250 ms | `MeasureMoxy()`, `MeasureMraw()` when called with 0 (the default argument) |
-| Line | 400 ms | `ReadVersion()`, `ReadUniqueId()`, `FlashLogo()` |
+| Line | 400 ms | `ReadVersion()`, `ReadUniqueId()` |
+| Slow command | 12000 ms | `FlashLogo()`: the echo comes after the LED has flashed, about 1 s |
 
 The defaults fit the factory setting (M = 2, up to about 150 ms per measurement). A module set to M = 3 or 4
 takes up to about 300 ms: raise the measurement timeout above that.
@@ -104,7 +105,8 @@ failed.
 --8<-- "tests/docs/api_tasks.cpp:logo"
 ```
 
-With several modules on several UARTs, `FlashLogo()` shows which connector belongs to which port.
+With several modules on several UARTs, `FlashLogo()` shows which connector belongs to which port. The module
+answers only after the flash sequence, so the call blocks for about 1 s, up to the slow-command timeout.
 
 ## Next
 

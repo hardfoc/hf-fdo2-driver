@@ -3,8 +3,8 @@
 Symptoms you may see while bringing up an FDO2-G2, their causes and the fix for each.
 
 Start with the `DriverError` of the failing call (`fdo2::ToString(result.error)`): `Timeout` points at wiring,
-baud rate or power; `ProtocolError` and `CrcMismatch` at what arrives on RX; `DeviceError` at the command, with the module's code in
-`LastDeviceErrorCode()`.
+baud rate or power; `ProtocolError` and `CrcMismatch` at what arrives on RX; `DeviceError` at the command, with
+the module's code in `LastDeviceErrorCode()`.
 
 ## No reply: every call returns `Timeout`
 
@@ -15,6 +15,7 @@ baud rate or power; `ProtocolError` and `CrcMismatch` at what arrives on RX; `De
 | Module still booting | First command less than 1 s after power-up | Wait `kFdo2G2PowerUpSettleMs` (1100 ms) |
 | No supply or no common ground | VCC at pin 4 between 3.3 V and 5.0 V, GND shared with the MCU | Fix the harness; a 40 mA peak must not pull VCC below 3.3 V |
 | Port `read()` never returns a line | A logic analyser shows the reply, but the call times out | The port must return at the CR ([Porting](porting.md#uart-port)) |
+| Only `FlashLogo()` times out | The LED flashes, but the `#LOGO` echo comes about 1 s later | Keep `SetSlowCommandTimeoutMs()` above 1000 ms (default 12000 ms) |
 
 ## Replies that do not parse: `ProtocolError`
 

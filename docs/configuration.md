@@ -21,11 +21,11 @@ protocol has no addresses.
 | --- | --- | --- | --- |
 | Measurement timeout | `SetMeasureTimeoutMs(uint32_t)` | 250 ms | `MeasureMoxy()`, `MeasureMraw()` |
 | Per-call measurement timeout | `MeasureMoxy(ms)`, `MeasureMraw(ms)` | 0: use the setting above | That call only |
-| Line timeout | `SetLineTimeoutMs(uint32_t)` | 400 ms | `ReadVersion()`, `ReadUniqueId()`, `FlashLogo()` |
-| Slow-command timeout | `SetSlowCommandTimeoutMs(uint32_t)` | 12000 ms | Reserved: no current command uses it |
+| Line timeout | `SetLineTimeoutMs(uint32_t)` | 400 ms | `ReadVersion()`, `ReadUniqueId()` |
+| Slow-command timeout | `SetSlowCommandTimeoutMs(uint32_t)` | 12000 ms | `FlashLogo()`: the module echoes `#LOGO` only after the LED has flashed, about 1 s |
 
-Read the first two back with `GetMeasureTimeoutMs()` and `GetLineTimeoutMs()`. The timeout is what the driver
-passes to your port's `read()`, so the port decides how precisely it is kept.
+Read them back with `GetMeasureTimeoutMs()`, `GetLineTimeoutMs()` and `GetSlowCommandTimeoutMs()`. The
+timeout is what the driver passes to your port's `read()`, so the port decides how precisely it is kept.
 
 ## Constants
 

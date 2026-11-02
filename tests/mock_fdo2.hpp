@@ -33,7 +33,8 @@ public:
   bool terminate = true;                             ///< false: the reply is sent without its CR
   std::string crc_suffix;                            ///< appended before CR, e.g. ": 43291" (§4.2)
 
-  std::vector<std::string> commands; ///< every command line received, without terminator
+  std::vector<std::string> commands;   ///< every command line received, without terminator
+  std::vector<uint32_t> read_timeouts; ///< timeout_ms of every read() call
   int flushes = 0;
   int delays_ms = 0;
 
@@ -55,7 +56,8 @@ public:
     }
   }
 
-  std::size_t read(uint8_t* out, std::size_t max, uint32_t /*timeout_ms*/) noexcept {
+  std::size_t read(uint8_t* out, std::size_t max, uint32_t timeout_ms) noexcept {
+    read_timeouts.push_back(timeout_ms);
     if (tx_lines_.empty()) {
       return 0; // timeout: no complete line
     }

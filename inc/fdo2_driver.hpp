@@ -283,7 +283,15 @@ public:
 
     void SetLineTimeoutMs(uint32_t ms) noexcept { line_timeout_ms_ = ms; }
     void SetMeasureTimeoutMs(uint32_t ms) noexcept { measure_timeout_ms_ = ms; }
+    /**
+     * @brief Timeout for commands the module answers only after a long task (default 12000 ms).
+     * @details Data sheet §4.1: the echo comes "after completion of the requested task". Used by
+     *          @ref FlashLogo (`#LOGO`: the LED flashes for about 1 s, §4.3); also sized for
+     *          `#CALO` / `#CAHI`, which take up to 10 s. A port that returns at the CR still
+     *          returns as soon as the echo arrives.
+     */
     void SetSlowCommandTimeoutMs(uint32_t ms) noexcept { slow_timeout_ms_ = ms; }
+    uint32_t GetSlowCommandTimeoutMs() const noexcept { return slow_timeout_ms_; }
 
     /**
      * @brief Require the `#CRCE 1` checksum on every reply (data sheet §4.2).
@@ -492,10 +500,11 @@ public:
     }
     /** @} */
 
-    /// Flash the status LED (identification).
+    /// Flash the status LED (identification). The echo comes after the ~1 s flash sequence, so
+    /// this waits up to the slow-command timeout (@ref SetSlowCommandTimeoutMs).
     DriverResult<void> FlashLogo() noexcept {
         last_device_error_ = 0;
-        return SimpleEchoCommand("#LOGO", 5);
+        return SimpleEchoCommand("#LOGO", 5, slow_timeout_ms_);
     }
 
 private:
@@ -530,7 +539,8 @@ private:
         return DriverResult<T>::failure(DriverError::DeviceError);
     }
 
-    DriverResult<void> SimpleEchoCommand(const char* cmd, std::size_t cmd_len) noexcept {
+    DriverResult<void> SimpleEchoCommand(const char* cmd, std::size_t cmd_len,
+                                         uint32_t timeout_ms) noexcept {
         char tx[16];
         if (cmd_len + 2U > sizeof(tx)) {
             return DriverResult<void>::failure(DriverError::InvalidParameter);
@@ -539,7 +549,7 @@ private:
         std::memcpy(tx, cmd, cmd_len);
         tx[cmd_len]     = '\r';
         tx[cmd_len + 1] = '\0';
-        const auto err = TransactLine(tx, line, sizeof(line), line_timeout_ms_);
+        const auto err = TransactLine(tx, line, sizeof(line), timeout_ms);
         if (err != DriverError::None) {
             return DriverResult<void>::failure(err);
         }

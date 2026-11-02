@@ -262,6 +262,25 @@ TEST_CASE("CRC: the split exchange verifies the checksum") {
   CHECK(dev.TryReadReplyLine(line, sizeof(line)) == fdo2::DriverError::CrcMismatch);
 }
 
+// Data sheet §4.1: the echo is sent "after completion of the requested task"; §4.3: #LOGO flashes
+// the LED 4 times, about 1 s in total. The 400 ms line timeout expires before the echo.
+TEST_CASE("FlashLogo waits up to the slow-command timeout for the echo") {
+  MockFdo2 uart;
+  Driver dev(uart);
+  CHECK_EQ(dev.GetSlowCommandTimeoutMs(), 12000U);
+  REQUIRE(dev.FlashLogo().ok());
+  REQUIRE(uart.read_timeouts.size() == 1U);
+  CHECK_EQ(uart.read_timeouts[0], 12000U);
+  dev.SetSlowCommandTimeoutMs(2000);
+  CHECK_EQ(dev.GetSlowCommandTimeoutMs(), 2000U);
+  REQUIRE(dev.FlashLogo().ok());
+  CHECK_EQ(uart.read_timeouts[1], 2000U);
+  REQUIRE(dev.ReadVersion().ok()); // the other commands keep the line timeout
+  CHECK_EQ(uart.read_timeouts[2], 400U);
+  REQUIRE(dev.MeasureMoxy().ok());
+  CHECK_EQ(uart.read_timeouts[3], 250U);
+}
+
 TEST_CASE("FlashLogo expects the #LOGO echo") {
   MockFdo2 uart;
   Driver dev(uart);

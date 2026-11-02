@@ -28,6 +28,9 @@ code that used the affected API; together they call for a major version bump at 
 - ESP32 example port (`hf_fdo2_esp_uart.hpp`): `read()` was one `uart_read_bytes()` call for up to 511 bytes, so
   every command waited for the whole timeout. It now returns as soon as the reply's CR arrives, and keeps a partial
   line across calls with a timeout of 0, as the split exchange needs.
+- `SetSlowCommandTimeoutMs()` had no effect, and `FlashLogo()` waited only the 400 ms line timeout although the
+  module echoes `#LOGO` after its LED flash sequence of about 1 s (data sheet §4.1, §4.3), so it timed out.
+  `FlashLogo()` now waits up to the slow-command timeout (default 12000 ms).
 
 ### Deprecated
 
@@ -38,4 +41,5 @@ code that used the affected API; together they call for a major version bump at 
 
 - `DriverError::CrcMismatch`, `detail::Crc16Modbus()` and `Driver::SetCrcRequired()` / `IsCrcRequired()` to
   reject replies that arrive without the checksum.
+- `Driver::GetSlowCommandTimeoutMs()`.
 - Host unit tests (`HF_FDO2_BUILD_TESTS`) that run the driver against a model of the FDO2-G2 command interface.

@@ -95,7 +95,8 @@ private:
 void timeouts(Sensor& sensor) {
   // --8<-- [start:timeouts]
   sensor.SetMeasureTimeoutMs(400);   // #MOXY / #MRAW: covers M = 3 or 4 (up to about 300 ms)
-  sensor.SetLineTimeoutMs(400);      // #VERS, #IDNR, #LOGO
+  sensor.SetLineTimeoutMs(400);      // #VERS, #IDNR
+  sensor.SetSlowCommandTimeoutMs(2000);  // #LOGO: echoed after the ~1 s flash sequence
   const auto m = sensor.MeasureMoxy(1000);             // or per call, in ms
   // --8<-- [end:timeouts]
   (void)m;

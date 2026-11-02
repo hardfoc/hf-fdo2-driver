@@ -28,7 +28,7 @@ one listed below, and every value is a decimal number in its range: signed 32-bi
 | `#IDNR` | `#IDNR N` | `ReadUniqueId()` |
 | `#MOXY` | `#MOXY O T S` | `MeasureMoxy()`, or `SendMeasure(Measure::Moxy)` |
 | `#MRAW` | `#MRAW O T S D I A P H` | `MeasureMraw()`, or `SendMeasure(Measure::Mraw)` |
-| `#LOGO` | `#LOGO` | `FlashLogo()`: the status LED flashes 4 times, about 1 s |
+| `#LOGO` | `#LOGO` | `FlashLogo()`: the status LED flashes 4 times, about 1 s, then the echo arrives |
 
 `#VERS` reports D = 8 for every FDO2-G2, N = 1 oxygen channel, the firmware revision as R = 357 for 3.57, and S,
 a bit mask of the sensors present (bit 0 oxygen, bit 1 temperature, bit 2 pressure, bit 3 humidity; 15 means all).
