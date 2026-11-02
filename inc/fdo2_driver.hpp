@@ -20,6 +20,7 @@
 #include "fdo2_uart_interface.hpp"
 
 #include <cctype>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -121,9 +122,11 @@ inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap, uint32
         return DriverError::Timeout;
     }
     std::size_t pos = 0;
+    bool terminated = false;
     for (std::size_t i = 0; i < n; ++i) {
         const char c = static_cast<char>(tmp[i]);
         if (c == '\r') {
+            terminated = true;
             break;
         }
         if (c == '\n') {
@@ -135,6 +138,10 @@ inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap, uint32
         buf[pos++] = c;
     }
     buf[pos] = '\0';
+    if (!terminated) {
+        // Data sheet §4.1: every reply ends with a single CR. Without it the line is incomplete.
+        return DriverError::ProtocolError;
+    }
     return VerifyAndStripCrc(buf, require_crc);
 }
 
@@ -179,43 +186,88 @@ inline DriverError Tokenize(const char* line, char* store, std::size_t store_cap
     return DriverError::None;
 }
 
-inline int32_t ParseI32(const char* s, bool* ok) noexcept {
-    char* end = nullptr;
-    const long v = std::strtol(s, &end, 10);
-    if (ok != nullptr) {
-        *ok = (end != s) && (*end == '\0');
+/// True when @p s is an optional '-' followed by one or more decimal digits and nothing else.
+inline bool IsDecimalToken(const char* s, bool allow_minus) noexcept {
+    if (s == nullptr) {
+        return false;
     }
-    constexpr long kMin = -2147483648L;
-    constexpr long kMax = 2147483647L;
-    if (v < kMin || v > kMax) {
-        if (ok != nullptr) {
-            *ok = false;
+    if (allow_minus && *s == '-') {
+        ++s;
+    }
+    if (*s == '\0') {
+        return false;
+    }
+    for (; *s != '\0'; ++s) {
+        if (std::isdigit(static_cast<unsigned char>(*s)) == 0) {
+            return false;
         }
-        return 0;
     }
-    return static_cast<int32_t>(v);
+    return true;
 }
 
+/// Parse a signed 32-bit decimal (data sheet §4.1 value range). @p ok is set (not accumulated).
+inline int32_t ParseI32(const char* s, bool* ok) noexcept {
+    bool valid = IsDecimalToken(s, true);
+    long long v = 0;
+    if (valid) {
+        errno = 0;
+        v     = std::strtoll(s, nullptr, 10);
+        valid = (errno == 0) && v >= -2147483648LL && v <= 2147483647LL;
+    }
+    if (ok != nullptr) {
+        *ok = valid;
+    }
+    return valid ? static_cast<int32_t>(v) : 0;
+}
+
+/// Parse an unsigned 32-bit decimal (no sign). @p ok is set (not accumulated).
 inline uint32_t ParseU32(const char* s, bool* ok) noexcept {
-    char* end = nullptr;
-    const unsigned long v = std::strtoul(s, &end, 10);
-    if (ok != nullptr) {
-        *ok = (end != s) && (*end == '\0');
+    bool valid = IsDecimalToken(s, false);
+    unsigned long long v = 0;
+    if (valid) {
+        errno = 0;
+        v     = std::strtoull(s, nullptr, 10);
+        valid = (errno == 0) && v <= 0xFFFFFFFFULL;
     }
-    return static_cast<uint32_t>(v);
+    if (ok != nullptr) {
+        *ok = valid;
+    }
+    return valid ? static_cast<uint32_t>(v) : 0U;
 }
 
+/// Parse an unsigned 64-bit decimal (no sign; `#IDNR`). @p ok is set (not accumulated).
 inline uint64_t ParseU64(const char* s, bool* ok) noexcept {
-    char* end = nullptr;
-    const unsigned long long v = std::strtoull(s, &end, 10);
-    if (ok != nullptr) {
-        *ok = (end != s) && (*end == '\0');
+    bool valid = IsDecimalToken(s, false);
+    unsigned long long v = 0;
+    if (valid) {
+        errno = 0;
+        v     = std::strtoull(s, nullptr, 10);
+        valid = (errno == 0);
     }
-    return static_cast<uint64_t>(v);
+    if (ok != nullptr) {
+        *ok = valid;
+    }
+    return valid ? static_cast<uint64_t>(v) : 0U;
+}
+
+/// Parse one field of a reply; @p all_ok is cleared if it is invalid and never set back to true.
+inline int32_t FieldI32(const char* s, bool& all_ok) noexcept {
+    bool ok = false;
+    const int32_t v = ParseI32(s, &ok);
+    all_ok = all_ok && ok;
+    return v;
+}
+
+/// @copydoc FieldI32
+inline uint32_t FieldU32(const char* s, bool& all_ok) noexcept {
+    bool ok = false;
+    const uint32_t v = ParseU32(s, &ok);
+    all_ok = all_ok && ok;
+    return v;
 }
 
 inline bool IsErroHeader(const char* tok0) noexcept {
-    return std::strncmp(tok0, "#ERRO", 5) == 0;
+    return std::strcmp(tok0, "#ERRO") == 0;
 }
 
 }  // namespace detail
@@ -280,7 +332,7 @@ public:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErro<uint64_t>(tok, nt);
         }
-        if (nt != 2U || std::strncmp(tok[0], "#IDNR", 5) != 0) {
+        if (nt != 2U || std::strcmp(tok[0], "#IDNR") != 0) {
             return DriverResult<uint64_t>::failure(DriverError::ProtocolError);
         }
         bool ok = false;
@@ -369,15 +421,15 @@ public:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErroStatic<VersionInfo>(tok, nt, device_error);
         }
-        if (nt < 5U || std::strncmp(tok[0], "#VERS", 5) != 0) {
+        if (nt != 5U || std::strcmp(tok[0], "#VERS") != 0) {
             return DriverResult<VersionInfo>::failure(DriverError::ProtocolError);
         }
         bool ok = true;
         VersionInfo v{};
-        v.device_id          = detail::ParseI32(tok[1], &ok);
-        v.num_channels       = detail::ParseI32(tok[2], &ok);
-        v.firmware_revision  = detail::ParseI32(tok[3], &ok);
-        v.sensor_types       = detail::ParseI32(tok[4], &ok);
+        v.device_id          = detail::FieldI32(tok[1], ok);
+        v.num_channels       = detail::FieldI32(tok[2], ok);
+        v.firmware_revision  = detail::FieldI32(tok[3], ok);
+        v.sensor_types       = detail::FieldI32(tok[4], ok);
         if (!ok) {
             return DriverResult<VersionInfo>::failure(DriverError::ProtocolError);
         }
@@ -396,13 +448,13 @@ public:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErroStatic<MoxyReading>(tok, nt, device_error);
         }
-        if (nt != 4U || std::strncmp(tok[0], "#MOXY", 5) != 0) {
+        if (nt != 4U || std::strcmp(tok[0], "#MOXY") != 0) {
             return DriverResult<MoxyReading>::failure(DriverError::ProtocolError);
         }
         bool ok = true;
-        const int32_t o = detail::ParseI32(tok[1], &ok);
-        const int32_t t = detail::ParseI32(tok[2], &ok);
-        const uint32_t s = detail::ParseU32(tok[3], &ok);
+        const int32_t o = detail::FieldI32(tok[1], ok);
+        const int32_t t = detail::FieldI32(tok[2], ok);
+        const uint32_t s = detail::FieldU32(tok[3], ok);
         if (!ok) {
             return DriverResult<MoxyReading>::failure(DriverError::ProtocolError);
         }
@@ -421,18 +473,18 @@ public:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErroStatic<MrawReading>(tok, nt, device_error);
         }
-        if (nt != 9U || std::strncmp(tok[0], "#MRAW", 5) != 0) {
+        if (nt != 9U || std::strcmp(tok[0], "#MRAW") != 0) {
             return DriverResult<MrawReading>::failure(DriverError::ProtocolError);
         }
         bool ok = true;
-        const int32_t o = detail::ParseI32(tok[1], &ok);
-        const int32_t t = detail::ParseI32(tok[2], &ok);
-        const uint32_t s = detail::ParseU32(tok[3], &ok);
-        const int32_t d = detail::ParseI32(tok[4], &ok);
-        const int32_t i = detail::ParseI32(tok[5], &ok);
-        const int32_t a = detail::ParseI32(tok[6], &ok);
-        const int32_t p = detail::ParseI32(tok[7], &ok);
-        const int32_t h = detail::ParseI32(tok[8], &ok);
+        const int32_t o = detail::FieldI32(tok[1], ok);
+        const int32_t t = detail::FieldI32(tok[2], ok);
+        const uint32_t s = detail::FieldU32(tok[3], ok);
+        const int32_t d = detail::FieldI32(tok[4], ok);
+        const int32_t i = detail::FieldI32(tok[5], ok);
+        const int32_t a = detail::FieldI32(tok[6], ok);
+        const int32_t p = detail::FieldI32(tok[7], ok);
+        const int32_t h = detail::FieldI32(tok[8], ok);
         if (!ok) {
             return DriverResult<MrawReading>::failure(DriverError::ProtocolError);
         }
@@ -500,7 +552,7 @@ private:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErro<void>(tok, nt);
         }
-        if (nt < 1U || std::strncmp(tok[0], cmd, cmd_len) != 0) {
+        if (nt != 1U || std::strlen(tok[0]) != cmd_len || std::strncmp(tok[0], cmd, cmd_len) != 0) {
             return DriverResult<void>::failure(DriverError::ProtocolError);
         }
         return DriverResult<void>::success();

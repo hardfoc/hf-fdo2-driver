@@ -30,6 +30,7 @@ public:
 
   std::map<std::string, std::string> override_reply; ///< header -> reply line (without CR)
   bool respond = true;                               ///< false: the module stays silent
+  bool terminate = true;                             ///< false: the reply is sent without its CR
   std::string crc_suffix;                            ///< appended before CR, e.g. ": 43291" (§4.2)
 
   std::vector<std::string> commands; ///< every command line received, without terminator
@@ -48,7 +49,7 @@ public:
       }
       commands.push_back(rx_line_);
       if (respond) {
-        tx_lines_.push_back(replyFor(rx_line_) + crc_suffix + "\r");
+        tx_lines_.push_back(replyFor(rx_line_) + crc_suffix + (terminate ? "\r" : ""));
       }
       rx_line_.clear();
     }

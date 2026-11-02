@@ -20,6 +20,11 @@ code that used the affected API; together they call for a major version bump at 
 - Optional CRC (`#CRCE 1`): replies end in `": C"` (colon, space, decimal CRC) per data sheet §4.2; the driver
   expected `" :C"`, so every reply with a checksum failed to parse. It now verifies the CRC-16/MODBUS over every
   byte before the colon and returns the new `DriverError::CrcMismatch` on a wrong checksum.
+- Reply parsing checked only the last value of a reply: a corrupted `O` or `T` in `#MOXY` (or any but `H` in
+  `#MRAW`, or `D`, `N`, `R` in `#VERS`) was accepted. Every value is now checked, including its range (`S`
+  unsigned 32-bit, `#IDNR` unsigned 64-bit, no wrap-around of negative numbers), headers must match exactly,
+  `#VERS` must carry exactly four values and `#LOGO` none, and a reply without its CR is a `ProtocolError`
+  (data sheet §4.1).
 
 ### Deprecated
 

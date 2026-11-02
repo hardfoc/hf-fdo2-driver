@@ -15,7 +15,10 @@ PyroScience instruments use a different command set; this page and the driver ap
 - Numbers are decimal ASCII in the range −2147483648 to 2147483647. The only exception is the `#IDNR` value, an
   unsigned 64-bit number of up to 20 digits.
 
-The driver sends the command, waits for one line, ignores a LF if one appears, and splits the line at spaces.
+The driver sends the command, waits for one line, ignores a LF if one appears, and splits the line at spaces. It
+accepts a reply only if it ends with the CR, the header matches the command exactly, the number of values is the
+one listed below, and every value is a decimal number in its range: signed 32-bit, unsigned 32-bit for the status
+`S`, unsigned 64-bit for `#IDNR`. Anything else is `DriverError::ProtocolError`.
 
 ## Commands the driver sends
 

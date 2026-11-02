@@ -21,7 +21,7 @@ baud rate or power; `ProtocolError` and `CrcMismatch` at what arrives on RX; `De
 | Cause | Check | Fix |
 | --- | --- | --- |
 | Broadcast mode left on | `#MRAW` lines arrive without a command | Send `#BCST 0` once from a terminal; it is stored in flash |
-| Port returns partial lines | Errors come and go, worse at low timeouts | Return one whole line per `read()` |
+| Port returns partial lines | Errors come and go, worse at low timeouts; a line without its CR is rejected | Return one whole line, CR included, per `read()` |
 | Noise or a 5 V signal on RXD | Garbled characters on a logic analyser | Level-shift the MCU's TX; shorten or shield the cable |
 
 The datasheet's advice for a garbled reply is to send the command again.

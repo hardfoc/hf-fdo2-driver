@@ -118,6 +118,67 @@ TEST_CASE("A reply with the wrong header or field count is a ProtocolError") {
   CHECK(dev.ReadVersion().error == fdo2::DriverError::ProtocolError);
 }
 
+// Data sheet §4.1 / §4.3: every value of a reply is a decimal number in its documented range, and
+// the reply ends with a single CR. A bad value in any position, not only the last, must fail the
+// reply.
+TEST_CASE("A bad value in any field is a ProtocolError, not only in the last") {
+  MockFdo2 uart;
+  Driver dev(uart);
+  uart.moxy = "#MOXY 2034x6 17892 0"; // O corrupted
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  uart.moxy = "#MOXY 203456 1789? 0"; // T corrupted
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  uart.mraw = "#MRAW 203456 -1965 1 24385 124072 12792 999734x 40365"; // P corrupted
+  CHECK(dev.MeasureMraw().error == fdo2::DriverError::ProtocolError);
+  uart.mraw = "#MRAW - -1965 1 24385 124072 12792 999734 40365"; // O is a lone minus
+  CHECK(dev.MeasureMraw().error == fdo2::DriverError::ProtocolError);
+  uart.vers = "#VERS 8x 1 357 15"; // D corrupted
+  CHECK(dev.ReadVersion().error == fdo2::DriverError::ProtocolError);
+}
+
+TEST_CASE("Values outside their data sheet range are a ProtocolError") {
+  MockFdo2 uart;
+  Driver dev(uart);
+  uart.moxy = "#MOXY 203456 17892 -1"; // S is unsigned
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  uart.moxy = "#MOXY 203456 17892 4294967296"; // S above 32 bits
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  uart.moxy = "#MOXY 2147483648 17892 0"; // O above int32
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  uart.moxy = "#MOXY -2147483648 17892 0"; // the int32 minimum is valid
+  CHECK(dev.MeasureMoxy().ok());
+  uart.idnr = "#IDNR -1"; // unsigned 64-bit
+  CHECK(dev.ReadUniqueId().error == fdo2::DriverError::ProtocolError);
+  uart.idnr = "#IDNR 18446744073709551616"; // above 64 bits
+  CHECK(dev.ReadUniqueId().error == fdo2::DriverError::ProtocolError);
+}
+
+TEST_CASE("Headers and field counts must match exactly") {
+  MockFdo2 uart;
+  Driver dev(uart);
+  uart.moxy = "#MOXYZ 203456 17892 0";
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  uart.vers = "#VERS 8 1 357 15 99"; // #VERS D N R S: four values
+  CHECK(dev.ReadVersion().error == fdo2::DriverError::ProtocolError);
+  uart.override_reply["#LOGO"] = "#LOGO 1";
+  CHECK(dev.FlashLogo().error == fdo2::DriverError::ProtocolError);
+  uart.override_reply["#LOGO"] = "#LOGOS";
+  CHECK(dev.FlashLogo().error == fdo2::DriverError::ProtocolError);
+}
+
+TEST_CASE("A reply without its CR terminator is a ProtocolError") {
+  MockFdo2 uart;
+  uart.terminate = false;
+  Driver dev(uart);
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  CHECK(dev.ReadVersion().error == fdo2::DriverError::ProtocolError);
+  uart.respond = false;
+  REQUIRE(dev.SendMeasure(Driver::Measure::Moxy) == fdo2::DriverError::None);
+  uart.inject("#MOXY 203456 17892 0"); // the port handed over a partial line
+  char line[96];
+  CHECK(dev.TryReadReplyLine(line, sizeof(line)) == fdo2::DriverError::ProtocolError);
+}
+
 // Data sheet §4.2: with #CRCE 1 every reply ends in ": C" before the CR, C being the CRC-16/MODBUS
 // (CRC-16-IBM) of every byte before the ':' as a decimal string. The data sheet gives no CRC
 // examples, so the expected values below are the CRC-16/MODBUS of the data sheet's own example
