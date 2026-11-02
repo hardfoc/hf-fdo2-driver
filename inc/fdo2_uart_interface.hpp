@@ -50,11 +50,13 @@ public:
     }
 
 private:
+    /// @cond INTERNAL
     template <typename, typename = void>
     struct HasDelay : std::false_type {};
     template <typename T>
     struct HasDelay<T, std::void_t<decltype(std::declval<T>().delay_ms_impl(0U))>>
         : std::true_type {};
+    /// @endcond
 };
 
 }  // namespace fdo2
