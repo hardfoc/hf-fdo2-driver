@@ -19,6 +19,13 @@ target_include_directories(hf_fdo2_host_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 target_compile_features(hf_fdo2_host_tests PRIVATE cxx_std_17)
 target_compile_options(hf_fdo2_host_tests PRIVATE -Wall -Wextra)
 
+# The ESP32 example port, compiled against a host model of the ESP-IDF UART calls it uses.
+target_sources(hf_fdo2_host_tests PRIVATE test_esp_uart.cpp)
+target_include_directories(hf_fdo2_host_tests PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/esp_idf_stub
+  ${PROJECT_SOURCE_DIR}/examples/esp32/main/include
+)
+
 add_test(NAME hf_fdo2_host_tests COMMAND hf_fdo2_host_tests)
 
 # The code shown on the documentation site (docs/ includes these files with pymdownx.snippets), built so a

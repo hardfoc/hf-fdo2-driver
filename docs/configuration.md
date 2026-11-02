@@ -21,11 +21,11 @@ protocol has no addresses.
 | --- | --- | --- | --- |
 | Measurement timeout | `SetMeasureTimeoutMs(uint32_t)` | 250 ms | `MeasureMoxy()`, `MeasureMraw()` |
 | Per-call measurement timeout | `MeasureMoxy(ms)`, `MeasureMraw(ms)` | 0: use the setting above | That call only |
-| Line timeout | `SetLineTimeoutMs(uint32_t)` | 400 ms | `ReadVersion()`, `ReadUniqueId()`, `FlashLogo()` |
-| Slow-command timeout | `SetSlowCommandTimeoutMs(uint32_t)` | 12000 ms | Reserved: no current command uses it |
+| Line timeout | `SetLineTimeoutMs(uint32_t)` | 400 ms | `ReadVersion()`, `ReadUniqueId()` |
+| Slow-command timeout | `SetSlowCommandTimeoutMs(uint32_t)` | 12000 ms | `FlashLogo()`: the module echoes `#LOGO` only after the LED has flashed, about 1 s |
 
-Read the first two back with `GetMeasureTimeoutMs()` and `GetLineTimeoutMs()`. The timeout is what the driver
-passes to your port's `read()`, so the port decides how precisely it is kept.
+Read them back with `GetMeasureTimeoutMs()`, `GetLineTimeoutMs()` and `GetSlowCommandTimeoutMs()`. The
+timeout is what the driver passes to your port's `read()`, so the port decides how precisely it is kept.
 
 ## Constants
 
@@ -43,7 +43,7 @@ with a service tool, sparingly (about 20,000 flash cycles in the module's life).
 | --- | --- | --- | --- |
 | Flash duration mode | `#SETM M` | M = 2: up to about 150 ms per measurement | M = 3 or 4: up to about 300 ms; raise the measurement timeout |
 | Broadcast mode | `#BCST T` | Off | On: unsolicited `#MRAW` lines interleave with replies; turn it off |
-| CRC | `#CRCE K` | Off | On: the driver strips a `" :<digits>"` suffix ([UART protocol](uart-protocol.md#optional-crc)) |
+| CRC | `#CRCE K` | Off | On: the driver verifies the `": C"` checksum of every reply; call `SetCrcRequired(true)` ([UART protocol](uart-protocol.md#optional-crc)) |
 | Calibration | `#CALO`, `#CAHI` | Factory calibration | None; a user calibration replaces the factory one |
 | Baud rate | `#BAUD R` | 19200, after every power-up | Your port must match it |
 

@@ -15,7 +15,10 @@ PyroScience instruments use a different command set; this page and the driver ap
 - Numbers are decimal ASCII in the range −2147483648 to 2147483647. The only exception is the `#IDNR` value, an
   unsigned 64-bit number of up to 20 digits.
 
-The driver sends the command, waits for one line, ignores a LF if one appears, and splits the line at spaces.
+The driver sends the command, waits for one line, ignores a LF if one appears, and splits the line at spaces. It
+accepts a reply only if it ends with the CR, the header matches the command exactly, the number of values is the
+one listed below, and every value is a decimal number in its range: signed 32-bit, unsigned 32-bit for the status
+`S`, unsigned 64-bit for `#IDNR`. Anything else is `DriverError::ProtocolError`.
 
 ## Commands the driver sends
 
@@ -25,7 +28,7 @@ The driver sends the command, waits for one line, ignores a LF if one appears, a
 | `#IDNR` | `#IDNR N` | `ReadUniqueId()` |
 | `#MOXY` | `#MOXY O T S` | `MeasureMoxy()`, or `SendMeasure(Measure::Moxy)` |
 | `#MRAW` | `#MRAW O T S D I A P H` | `MeasureMraw()`, or `SendMeasure(Measure::Mraw)` |
-| `#LOGO` | `#LOGO` | `FlashLogo()`: the status LED flashes 4 times, about 1 s |
+| `#LOGO` | `#LOGO` | `FlashLogo()`: the status LED flashes 4 times, about 1 s, then the echo arrives |
 
 `#VERS` reports D = 8 for every FDO2-G2, N = 1 oxygen channel, the firmware revision as R = 357 for 3.57, and S,
 a bit mask of the sensors present (bit 0 oxygen, bit 1 temperature, bit 2 pressure, bit 3 humidity; 15 means all).
@@ -99,11 +102,16 @@ Any other code is potentially fatal: the datasheet says to replace the sensor an
 
 ## Optional CRC
 
-`#CRCE 1` makes the module end every reply with a CRC-16 (the MODBUS polynomial, CRC-16-IBM) as decimal ASCII
-after a colon, computed over every character before the colon. The setting is stored in flash and survives a
-power cycle. The driver removes a trailing `" :<digits>"` before it parses a reply, but it does not check the
-CRC, and it never sends `#CRCE`. Without the CRC, the datasheet's first-level check is the echo of the command
-header, which the driver does compare.
+`#CRCE 1` makes the module end every reply with a colon, a space and a CRC-16 as decimal ASCII before the CR:
+`#MOXY 203456 17892 0: 43291`, then CR. The CRC is the MODBUS one (CRC-16-IBM: reflected polynomial `0xA001`,
+initial value `0xFFFF`, no final XOR) over every byte from the start of the reply up to, not including, the colon,
+spaces included. The setting is stored in flash and survives a power cycle.
+
+The driver checks the CRC of every reply that carries one, `#ERRO` replies included, and removes the suffix before
+it parses the reply. A wrong checksum returns `DriverError::CrcMismatch`; a colon not followed by a number from 0
+to 65535 returns `ProtocolError`. Call `SetCrcRequired(true)` on a module with the CRC on to reject replies that
+arrive without it. The driver never sends `#CRCE`. Without the CRC, the datasheet's first-level check is the echo
+of the command header, which the driver does compare.
 
 ## Commands the driver does not send
 

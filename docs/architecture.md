@@ -38,7 +38,7 @@ sequenceDiagram
     S-->>P: MOXY 203456 17892 0, CR (after up to 150 ms)
     D->>P: read(buf, 511, 250 ms)
     P-->>D: one line, CR included
-    D->>D: strip CRC suffix, split, check header and field count
+    D->>D: check and strip CRC suffix, split, check header, field count and every value
     D->>D: ERRO reply: DeviceError, code in LastDeviceErrorCode()
     D-->>A: result with MoxyReading: 203.456 hPa, 17.892 C, status 0
 ```

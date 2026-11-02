@@ -5,8 +5,9 @@
  * @details Implements the **FDO2-G2** command set: `#VERS`, `#IDNR`, `#MOXY`,
  *          `#MRAW`, `#LOGO`. Lines are ASCII, terminated with `\\r` (optional
  *          `\\n` after `\\r` per §4.1). If optional CRC is enabled (`#CRCE 1`),
- *          responses end with ` : C` before `\\r`; this implementation strips
- *          that suffix before parsing.
+ *          responses end with `: C` before `\\r` (§4.2), C being the CRC-16/MODBUS
+ *          of every byte before the `:` in decimal; the driver verifies it and
+ *          rejects a mismatch with `DriverError::CrcMismatch`.
  *
  *          Default UART is **19200** 8N1 after power-up; allow ~1 s settle time
  *          before the first transaction.
@@ -19,6 +20,7 @@
 #include "fdo2_uart_interface.hpp"
 
 #include <cctype>
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -37,31 +39,79 @@ inline bool AppendCmd(char* buf, std::size_t cap, std::string_view cmd) noexcept
     return true;
 }
 
-/// If CRC is enabled, response is `... : <decimal>\\r`. Strip from last `" :"`.
-inline void StripOptionalModbusCrcSuffix(char* line) noexcept {
-    if (line == nullptr || line[0] == '\0') {
-        return;
+/**
+ * @brief CRC-16/MODBUS (CRC-16-IBM, reflected polynomial 0xA001, initial value 0xFFFF, no final XOR).
+ * @details Data sheet §4.2: the checksum the module appends with `#CRCE 1`, computed over the reply
+ *          from its first character up to, not including, the `:`. Check value: "123456789" -> 0x4B37.
+ */
+inline uint16_t Crc16Modbus(const char* data, std::size_t len) noexcept {
+    uint16_t crc = 0xFFFFU;
+    for (std::size_t i = 0; i < len; ++i) {
+        crc = static_cast<uint16_t>(crc ^ static_cast<unsigned char>(data[i]));
+        for (int bit = 0; bit < 8; ++bit) {
+            if ((crc & 1U) != 0U) {
+                crc = static_cast<uint16_t>((crc >> 1U) ^ 0xA001U);
+            } else {
+                crc = static_cast<uint16_t>(crc >> 1U);
+            }
+        }
     }
+    return crc;
+}
+
+/**
+ * @brief Verify and remove the optional CRC suffix of a reply line (CR already removed).
+ * @details Data sheet §4.2: with `#CRCE 1` every reply ends in `": C"` before the CR, where C is the
+ *          CRC-16 as a decimal ASCII string, computed over every byte before the `:` (spaces included).
+ *          Replies never contain `:` otherwise, so a `:` marks the suffix. On success the line is cut
+ *          at the `:`.
+ * @param require  When true, a line without the suffix is rejected (module known to have `#CRCE 1`).
+ * @return None (no suffix and not required, or suffix valid); CrcMismatch (checksum differs, or
+ *         required and missing); ProtocolError (a `:` not followed by a decimal 0..65535).
+ */
+inline DriverError VerifyAndStripCrc(char* line, bool require) noexcept {
     char* colon = std::strrchr(line, ':');
-    if (colon == nullptr || colon <= line + 1) {
-        return;
-    }
-    if (colon[-1] != ' ') {
-        return;
+    if (colon == nullptr) {
+        return require ? DriverError::CrcMismatch : DriverError::None;
     }
     const char* p = colon + 1;
-    while (*p != '\0') {
-        if (std::isdigit(static_cast<unsigned char>(*p)) == 0) {
-            return;
-        }
+    while (*p == ' ') {
         ++p;
     }
-    colon[-1] = '\0';
+    uint32_t value  = 0;
+    std::size_t nd  = 0;
+    while (std::isdigit(static_cast<unsigned char>(*p)) != 0) {
+        value = value * 10U + static_cast<uint32_t>(*p - '0');
+        ++p;
+        if (++nd > 5U) {
+            return DriverError::ProtocolError;
+        }
+    }
+    if (nd == 0U || *p != '\0' || value > 0xFFFFU) {
+        return DriverError::ProtocolError;
+    }
+    const std::size_t covered = static_cast<std::size_t>(colon - line);
+    if (Crc16Modbus(line, covered) != static_cast<uint16_t>(value)) {
+        return DriverError::CrcMismatch;
+    }
+    *colon = '\0';
+    return DriverError::None;
+}
+
+/// @deprecated Strips a CRC suffix without checking it; use VerifyAndStripCrc().
+[[deprecated("use VerifyAndStripCrc(), which checks the checksum")]]
+inline void StripOptionalModbusCrcSuffix(char* line) noexcept {
+    if (line != nullptr) {
+        char* colon = std::strrchr(line, ':');
+        if (colon != nullptr) {
+            *colon = '\0';
+        }
+    }
 }
 
 template <typename UartT>
-inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap,
-                                 uint32_t timeout_ms) noexcept {
+inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap, uint32_t timeout_ms,
+                                 bool require_crc = false) noexcept {
     if (cap < 2) {
         return DriverError::InvalidParameter;
     }
@@ -72,9 +122,11 @@ inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap,
         return DriverError::Timeout;
     }
     std::size_t pos = 0;
+    bool terminated = false;
     for (std::size_t i = 0; i < n; ++i) {
         const char c = static_cast<char>(tmp[i]);
         if (c == '\r') {
+            terminated = true;
             break;
         }
         if (c == '\n') {
@@ -86,8 +138,11 @@ inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap,
         buf[pos++] = c;
     }
     buf[pos] = '\0';
-    StripOptionalModbusCrcSuffix(buf);
-    return DriverError::None;
+    if (!terminated) {
+        // Data sheet §4.1: every reply ends with a single CR. Without it the line is incomplete.
+        return DriverError::ProtocolError;
+    }
+    return VerifyAndStripCrc(buf, require_crc);
 }
 
 inline const char* SkipWs(const char* p) noexcept {
@@ -131,43 +186,88 @@ inline DriverError Tokenize(const char* line, char* store, std::size_t store_cap
     return DriverError::None;
 }
 
-inline int32_t ParseI32(const char* s, bool* ok) noexcept {
-    char* end = nullptr;
-    const long v = std::strtol(s, &end, 10);
-    if (ok != nullptr) {
-        *ok = (end != s) && (*end == '\0');
+/// True when @p s is an optional '-' followed by one or more decimal digits and nothing else.
+inline bool IsDecimalToken(const char* s, bool allow_minus) noexcept {
+    if (s == nullptr) {
+        return false;
     }
-    constexpr long kMin = -2147483648L;
-    constexpr long kMax = 2147483647L;
-    if (v < kMin || v > kMax) {
-        if (ok != nullptr) {
-            *ok = false;
+    if (allow_minus && *s == '-') {
+        ++s;
+    }
+    if (*s == '\0') {
+        return false;
+    }
+    for (; *s != '\0'; ++s) {
+        if (std::isdigit(static_cast<unsigned char>(*s)) == 0) {
+            return false;
         }
-        return 0;
     }
-    return static_cast<int32_t>(v);
+    return true;
 }
 
+/// Parse a signed 32-bit decimal (data sheet §4.1 value range). @p ok is set (not accumulated).
+inline int32_t ParseI32(const char* s, bool* ok) noexcept {
+    bool valid = IsDecimalToken(s, true);
+    long long v = 0;
+    if (valid) {
+        errno = 0;
+        v     = std::strtoll(s, nullptr, 10);
+        valid = (errno == 0) && v >= -2147483648LL && v <= 2147483647LL;
+    }
+    if (ok != nullptr) {
+        *ok = valid;
+    }
+    return valid ? static_cast<int32_t>(v) : 0;
+}
+
+/// Parse an unsigned 32-bit decimal (no sign). @p ok is set (not accumulated).
 inline uint32_t ParseU32(const char* s, bool* ok) noexcept {
-    char* end = nullptr;
-    const unsigned long v = std::strtoul(s, &end, 10);
-    if (ok != nullptr) {
-        *ok = (end != s) && (*end == '\0');
+    bool valid = IsDecimalToken(s, false);
+    unsigned long long v = 0;
+    if (valid) {
+        errno = 0;
+        v     = std::strtoull(s, nullptr, 10);
+        valid = (errno == 0) && v <= 0xFFFFFFFFULL;
     }
-    return static_cast<uint32_t>(v);
+    if (ok != nullptr) {
+        *ok = valid;
+    }
+    return valid ? static_cast<uint32_t>(v) : 0U;
 }
 
+/// Parse an unsigned 64-bit decimal (no sign; `#IDNR`). @p ok is set (not accumulated).
 inline uint64_t ParseU64(const char* s, bool* ok) noexcept {
-    char* end = nullptr;
-    const unsigned long long v = std::strtoull(s, &end, 10);
-    if (ok != nullptr) {
-        *ok = (end != s) && (*end == '\0');
+    bool valid = IsDecimalToken(s, false);
+    unsigned long long v = 0;
+    if (valid) {
+        errno = 0;
+        v     = std::strtoull(s, nullptr, 10);
+        valid = (errno == 0);
     }
-    return static_cast<uint64_t>(v);
+    if (ok != nullptr) {
+        *ok = valid;
+    }
+    return valid ? static_cast<uint64_t>(v) : 0U;
+}
+
+/// Parse one field of a reply; @p all_ok is cleared if it is invalid and never set back to true.
+inline int32_t FieldI32(const char* s, bool& all_ok) noexcept {
+    bool ok = false;
+    const int32_t v = ParseI32(s, &ok);
+    all_ok = all_ok && ok;
+    return v;
+}
+
+/// @copydoc FieldI32
+inline uint32_t FieldU32(const char* s, bool& all_ok) noexcept {
+    bool ok = false;
+    const uint32_t v = ParseU32(s, &ok);
+    all_ok = all_ok && ok;
+    return v;
 }
 
 inline bool IsErroHeader(const char* tok0) noexcept {
-    return std::strncmp(tok0, "#ERRO", 5) == 0;
+    return std::strcmp(tok0, "#ERRO") == 0;
 }
 
 }  // namespace detail
@@ -183,7 +283,24 @@ public:
 
     void SetLineTimeoutMs(uint32_t ms) noexcept { line_timeout_ms_ = ms; }
     void SetMeasureTimeoutMs(uint32_t ms) noexcept { measure_timeout_ms_ = ms; }
+    /**
+     * @brief Timeout for commands the module answers only after a long task (default 12000 ms).
+     * @details Data sheet §4.1: the echo comes "after completion of the requested task". Used by
+     *          @ref FlashLogo (`#LOGO`: the LED flashes for about 1 s, §4.3); also sized for
+     *          `#CALO` / `#CAHI`, which take up to 10 s. A port that returns at the CR still
+     *          returns as soon as the echo arrives.
+     */
     void SetSlowCommandTimeoutMs(uint32_t ms) noexcept { slow_timeout_ms_ = ms; }
+    uint32_t GetSlowCommandTimeoutMs() const noexcept { return slow_timeout_ms_; }
+
+    /**
+     * @brief Require the `#CRCE 1` checksum on every reply (data sheet §4.2).
+     * @details A reply that carries the suffix is always verified. With this set, a reply without
+     *          it is rejected too (`CrcMismatch`), so a corrupted `:` cannot hide a bad reply. Set it
+     *          only for a module whose CRC is enabled; the driver never sends `#CRCE`.
+     */
+    void SetCrcRequired(bool required) noexcept { crc_required_ = required; }
+    bool IsCrcRequired() const noexcept { return crc_required_; }
 
     uint32_t GetLineTimeoutMs() const noexcept { return line_timeout_ms_; }
     uint32_t GetMeasureTimeoutMs() const noexcept { return measure_timeout_ms_; }
@@ -223,7 +340,7 @@ public:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErro<uint64_t>(tok, nt);
         }
-        if (nt != 2U || std::strncmp(tok[0], "#IDNR", 5) != 0) {
+        if (nt != 2U || std::strcmp(tok[0], "#IDNR") != 0) {
             return DriverResult<uint64_t>::failure(DriverError::ProtocolError);
         }
         bool ok = false;
@@ -297,7 +414,7 @@ public:
      * @return None with @p line filled; Timeout when no complete line is waiting.
      */
     DriverError TryReadReplyLine(char* line, std::size_t line_cap) noexcept {
-        return detail::ReadAsciiLine(uart_, line, line_cap, 0U);
+        return detail::ReadAsciiLine(uart_, line, line_cap, 0U, crc_required_);
     }
 
     /// Decode a `#VERS` reply line. @p device_error receives the `#ERRO` code (may be null).
@@ -312,15 +429,15 @@ public:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErroStatic<VersionInfo>(tok, nt, device_error);
         }
-        if (nt < 5U || std::strncmp(tok[0], "#VERS", 5) != 0) {
+        if (nt != 5U || std::strcmp(tok[0], "#VERS") != 0) {
             return DriverResult<VersionInfo>::failure(DriverError::ProtocolError);
         }
         bool ok = true;
         VersionInfo v{};
-        v.device_id          = detail::ParseI32(tok[1], &ok);
-        v.num_channels       = detail::ParseI32(tok[2], &ok);
-        v.firmware_revision  = detail::ParseI32(tok[3], &ok);
-        v.sensor_types       = detail::ParseI32(tok[4], &ok);
+        v.device_id          = detail::FieldI32(tok[1], ok);
+        v.num_channels       = detail::FieldI32(tok[2], ok);
+        v.firmware_revision  = detail::FieldI32(tok[3], ok);
+        v.sensor_types       = detail::FieldI32(tok[4], ok);
         if (!ok) {
             return DriverResult<VersionInfo>::failure(DriverError::ProtocolError);
         }
@@ -339,13 +456,13 @@ public:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErroStatic<MoxyReading>(tok, nt, device_error);
         }
-        if (nt != 4U || std::strncmp(tok[0], "#MOXY", 5) != 0) {
+        if (nt != 4U || std::strcmp(tok[0], "#MOXY") != 0) {
             return DriverResult<MoxyReading>::failure(DriverError::ProtocolError);
         }
         bool ok = true;
-        const int32_t o = detail::ParseI32(tok[1], &ok);
-        const int32_t t = detail::ParseI32(tok[2], &ok);
-        const uint32_t s = detail::ParseU32(tok[3], &ok);
+        const int32_t o = detail::FieldI32(tok[1], ok);
+        const int32_t t = detail::FieldI32(tok[2], ok);
+        const uint32_t s = detail::FieldU32(tok[3], ok);
         if (!ok) {
             return DriverResult<MoxyReading>::failure(DriverError::ProtocolError);
         }
@@ -364,18 +481,18 @@ public:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErroStatic<MrawReading>(tok, nt, device_error);
         }
-        if (nt != 9U || std::strncmp(tok[0], "#MRAW", 5) != 0) {
+        if (nt != 9U || std::strcmp(tok[0], "#MRAW") != 0) {
             return DriverResult<MrawReading>::failure(DriverError::ProtocolError);
         }
         bool ok = true;
-        const int32_t o = detail::ParseI32(tok[1], &ok);
-        const int32_t t = detail::ParseI32(tok[2], &ok);
-        const uint32_t s = detail::ParseU32(tok[3], &ok);
-        const int32_t d = detail::ParseI32(tok[4], &ok);
-        const int32_t i = detail::ParseI32(tok[5], &ok);
-        const int32_t a = detail::ParseI32(tok[6], &ok);
-        const int32_t p = detail::ParseI32(tok[7], &ok);
-        const int32_t h = detail::ParseI32(tok[8], &ok);
+        const int32_t o = detail::FieldI32(tok[1], ok);
+        const int32_t t = detail::FieldI32(tok[2], ok);
+        const uint32_t s = detail::FieldU32(tok[3], ok);
+        const int32_t d = detail::FieldI32(tok[4], ok);
+        const int32_t i = detail::FieldI32(tok[5], ok);
+        const int32_t a = detail::FieldI32(tok[6], ok);
+        const int32_t p = detail::FieldI32(tok[7], ok);
+        const int32_t h = detail::FieldI32(tok[8], ok);
         if (!ok) {
             return DriverResult<MrawReading>::failure(DriverError::ProtocolError);
         }
@@ -383,10 +500,11 @@ public:
     }
     /** @} */
 
-    /// Flash the status LED (identification).
+    /// Flash the status LED (identification). The echo comes after the ~1 s flash sequence, so
+    /// this waits up to the slow-command timeout (@ref SetSlowCommandTimeoutMs).
     DriverResult<void> FlashLogo() noexcept {
         last_device_error_ = 0;
-        return SimpleEchoCommand("#LOGO", 5);
+        return SimpleEchoCommand("#LOGO", 5, slow_timeout_ms_);
     }
 
 private:
@@ -421,7 +539,8 @@ private:
         return DriverResult<T>::failure(DriverError::DeviceError);
     }
 
-    DriverResult<void> SimpleEchoCommand(const char* cmd, std::size_t cmd_len) noexcept {
+    DriverResult<void> SimpleEchoCommand(const char* cmd, std::size_t cmd_len,
+                                         uint32_t timeout_ms) noexcept {
         char tx[16];
         if (cmd_len + 2U > sizeof(tx)) {
             return DriverResult<void>::failure(DriverError::InvalidParameter);
@@ -430,7 +549,7 @@ private:
         std::memcpy(tx, cmd, cmd_len);
         tx[cmd_len]     = '\r';
         tx[cmd_len + 1] = '\0';
-        const auto err = TransactLine(tx, line, sizeof(line), line_timeout_ms_);
+        const auto err = TransactLine(tx, line, sizeof(line), timeout_ms);
         if (err != DriverError::None) {
             return DriverResult<void>::failure(err);
         }
@@ -443,7 +562,7 @@ private:
         if (nt >= 2 && detail::IsErroHeader(tok[0])) {
             return FailErro<void>(tok, nt);
         }
-        if (nt < 1U || std::strncmp(tok[0], cmd, cmd_len) != 0) {
+        if (nt != 1U || std::strlen(tok[0]) != cmd_len || std::strncmp(tok[0], cmd, cmd_len) != 0) {
             return DriverResult<void>::failure(DriverError::ProtocolError);
         }
         return DriverResult<void>::success();
@@ -454,7 +573,7 @@ private:
         uart_.flush_rx();
         uart_.write(reinterpret_cast<const uint8_t*>(tx), std::strlen(tx));
         const uint32_t tmo = (timeout_ms != 0U) ? timeout_ms : line_timeout_ms_;
-        return detail::ReadAsciiLine(uart_, line, line_cap, tmo);
+        return detail::ReadAsciiLine(uart_, line, line_cap, tmo, crc_required_);
     }
 
     UartT&   uart_;
@@ -462,6 +581,7 @@ private:
     uint32_t measure_timeout_ms_{250};
     uint32_t slow_timeout_ms_{12000};
     int32_t  last_device_error_{0};
+    bool     crc_required_{false};
 };
 
 }  // namespace fdo2

@@ -75,7 +75,8 @@ send the command again.
 | Timeout | Default | Used by |
 | --- | --- | --- |
 | Measurement | 250 ms | `MeasureMoxy()`, `MeasureMraw()` when called with 0 (the default argument) |
-| Line | 400 ms | `ReadVersion()`, `ReadUniqueId()`, `FlashLogo()` |
+| Line | 400 ms | `ReadVersion()`, `ReadUniqueId()` |
+| Slow command | 12000 ms | `FlashLogo()`: the echo comes after the LED has flashed, about 1 s |
 
 The defaults fit the factory setting (M = 2, up to about 150 ms per measurement). A module set to M = 3 or 4
 takes up to about 300 ms: raise the measurement timeout above that.
@@ -89,7 +90,8 @@ takes up to about 300 ms: raise the measurement timeout above that.
 | Signal | Meaning | What to do |
 | --- | --- | --- |
 | `DriverError::Timeout` | No reply within the timeout | Check wiring, baud rate, supply; wait 1 s after power-up |
-| `DriverError::ProtocolError` | A reply that did not parse: wrong header, wrong field count | Repeat the command; check the baud rate and broadcast mode |
+| `DriverError::ProtocolError` | A reply that did not parse: wrong header or field count, a value that is not a number in range, no CR at the end | Repeat the command; check the baud rate and broadcast mode |
+| `DriverError::CrcMismatch` | With `#CRCE 1`: the reply's checksum is wrong, or missing while `SetCrcRequired(true)` | Repeat the command; see [optional CRC](uart-protocol.md#optional-crc) |
 | `DriverError::DeviceError` | `#ERRO E` | `LastDeviceErrorCode()`; [error codes](uart-protocol.md#error-codes) |
 | `DriverError::BufferOverflow` | A reply longer than the line buffer | Noise on RX, or broadcast replies running together |
 | `MoxyStatusOkForOxygen(S)` is `false` | Status bits other than bit 0 set | Do not use `O` and `T`; see the [status bits](uart-protocol.md#status-bits) |
@@ -103,7 +105,8 @@ failed.
 --8<-- "tests/docs/api_tasks.cpp:logo"
 ```
 
-With several modules on several UARTs, `FlashLogo()` shows which connector belongs to which port.
+With several modules on several UARTs, `FlashLogo()` shows which connector belongs to which port. The module
+answers only after the flash sequence, so the call blocks for about 1 s, up to the slow-command timeout.
 
 ## Next
 
