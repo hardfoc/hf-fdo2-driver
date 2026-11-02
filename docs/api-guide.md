@@ -90,6 +90,7 @@ takes up to about 300 ms: raise the measurement timeout above that.
 | --- | --- | --- |
 | `DriverError::Timeout` | No reply within the timeout | Check wiring, baud rate, supply; wait 1 s after power-up |
 | `DriverError::ProtocolError` | A reply that did not parse: wrong header, wrong field count | Repeat the command; check the baud rate and broadcast mode |
+| `DriverError::CrcMismatch` | With `#CRCE 1`: the reply's checksum is wrong, or missing while `SetCrcRequired(true)` | Repeat the command; see [optional CRC](uart-protocol.md#optional-crc) |
 | `DriverError::DeviceError` | `#ERRO E` | `LastDeviceErrorCode()`; [error codes](uart-protocol.md#error-codes) |
 | `DriverError::BufferOverflow` | A reply longer than the line buffer | Noise on RX, or broadcast replies running together |
 | `MoxyStatusOkForOxygen(S)` is `false` | Status bits other than bit 0 set | Do not use `O` and `T`; see the [status bits](uart-protocol.md#status-bits) |

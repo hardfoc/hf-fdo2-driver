@@ -5,8 +5,9 @@
  * @details Implements the **FDO2-G2** command set: `#VERS`, `#IDNR`, `#MOXY`,
  *          `#MRAW`, `#LOGO`. Lines are ASCII, terminated with `\\r` (optional
  *          `\\n` after `\\r` per §4.1). If optional CRC is enabled (`#CRCE 1`),
- *          responses end with ` : C` before `\\r`; this implementation strips
- *          that suffix before parsing.
+ *          responses end with `: C` before `\\r` (§4.2), C being the CRC-16/MODBUS
+ *          of every byte before the `:` in decimal; the driver verifies it and
+ *          rejects a mismatch with `DriverError::CrcMismatch`.
  *
  *          Default UART is **19200** 8N1 after power-up; allow ~1 s settle time
  *          before the first transaction.
@@ -37,31 +38,79 @@ inline bool AppendCmd(char* buf, std::size_t cap, std::string_view cmd) noexcept
     return true;
 }
 
-/// If CRC is enabled, response is `... : <decimal>\\r`. Strip from last `" :"`.
-inline void StripOptionalModbusCrcSuffix(char* line) noexcept {
-    if (line == nullptr || line[0] == '\0') {
-        return;
+/**
+ * @brief CRC-16/MODBUS (CRC-16-IBM, reflected polynomial 0xA001, initial value 0xFFFF, no final XOR).
+ * @details Data sheet §4.2: the checksum the module appends with `#CRCE 1`, computed over the reply
+ *          from its first character up to, not including, the `:`. Check value: "123456789" -> 0x4B37.
+ */
+inline uint16_t Crc16Modbus(const char* data, std::size_t len) noexcept {
+    uint16_t crc = 0xFFFFU;
+    for (std::size_t i = 0; i < len; ++i) {
+        crc = static_cast<uint16_t>(crc ^ static_cast<unsigned char>(data[i]));
+        for (int bit = 0; bit < 8; ++bit) {
+            if ((crc & 1U) != 0U) {
+                crc = static_cast<uint16_t>((crc >> 1U) ^ 0xA001U);
+            } else {
+                crc = static_cast<uint16_t>(crc >> 1U);
+            }
+        }
     }
+    return crc;
+}
+
+/**
+ * @brief Verify and remove the optional CRC suffix of a reply line (CR already removed).
+ * @details Data sheet §4.2: with `#CRCE 1` every reply ends in `": C"` before the CR, where C is the
+ *          CRC-16 as a decimal ASCII string, computed over every byte before the `:` (spaces included).
+ *          Replies never contain `:` otherwise, so a `:` marks the suffix. On success the line is cut
+ *          at the `:`.
+ * @param require  When true, a line without the suffix is rejected (module known to have `#CRCE 1`).
+ * @return None (no suffix and not required, or suffix valid); CrcMismatch (checksum differs, or
+ *         required and missing); ProtocolError (a `:` not followed by a decimal 0..65535).
+ */
+inline DriverError VerifyAndStripCrc(char* line, bool require) noexcept {
     char* colon = std::strrchr(line, ':');
-    if (colon == nullptr || colon <= line + 1) {
-        return;
-    }
-    if (colon[-1] != ' ') {
-        return;
+    if (colon == nullptr) {
+        return require ? DriverError::CrcMismatch : DriverError::None;
     }
     const char* p = colon + 1;
-    while (*p != '\0') {
-        if (std::isdigit(static_cast<unsigned char>(*p)) == 0) {
-            return;
-        }
+    while (*p == ' ') {
         ++p;
     }
-    colon[-1] = '\0';
+    uint32_t value  = 0;
+    std::size_t nd  = 0;
+    while (std::isdigit(static_cast<unsigned char>(*p)) != 0) {
+        value = value * 10U + static_cast<uint32_t>(*p - '0');
+        ++p;
+        if (++nd > 5U) {
+            return DriverError::ProtocolError;
+        }
+    }
+    if (nd == 0U || *p != '\0' || value > 0xFFFFU) {
+        return DriverError::ProtocolError;
+    }
+    const std::size_t covered = static_cast<std::size_t>(colon - line);
+    if (Crc16Modbus(line, covered) != static_cast<uint16_t>(value)) {
+        return DriverError::CrcMismatch;
+    }
+    *colon = '\0';
+    return DriverError::None;
+}
+
+/// @deprecated Strips a CRC suffix without checking it; use VerifyAndStripCrc().
+[[deprecated("use VerifyAndStripCrc(), which checks the checksum")]]
+inline void StripOptionalModbusCrcSuffix(char* line) noexcept {
+    if (line != nullptr) {
+        char* colon = std::strrchr(line, ':');
+        if (colon != nullptr) {
+            *colon = '\0';
+        }
+    }
 }
 
 template <typename UartT>
-inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap,
-                                 uint32_t timeout_ms) noexcept {
+inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap, uint32_t timeout_ms,
+                                 bool require_crc = false) noexcept {
     if (cap < 2) {
         return DriverError::InvalidParameter;
     }
@@ -86,8 +135,7 @@ inline DriverError ReadAsciiLine(UartT& uart, char* buf, std::size_t cap,
         buf[pos++] = c;
     }
     buf[pos] = '\0';
-    StripOptionalModbusCrcSuffix(buf);
-    return DriverError::None;
+    return VerifyAndStripCrc(buf, require_crc);
 }
 
 inline const char* SkipWs(const char* p) noexcept {
@@ -184,6 +232,15 @@ public:
     void SetLineTimeoutMs(uint32_t ms) noexcept { line_timeout_ms_ = ms; }
     void SetMeasureTimeoutMs(uint32_t ms) noexcept { measure_timeout_ms_ = ms; }
     void SetSlowCommandTimeoutMs(uint32_t ms) noexcept { slow_timeout_ms_ = ms; }
+
+    /**
+     * @brief Require the `#CRCE 1` checksum on every reply (data sheet §4.2).
+     * @details A reply that carries the suffix is always verified. With this set, a reply without
+     *          it is rejected too (`CrcMismatch`), so a corrupted `:` cannot hide a bad reply. Set it
+     *          only for a module whose CRC is enabled; the driver never sends `#CRCE`.
+     */
+    void SetCrcRequired(bool required) noexcept { crc_required_ = required; }
+    bool IsCrcRequired() const noexcept { return crc_required_; }
 
     uint32_t GetLineTimeoutMs() const noexcept { return line_timeout_ms_; }
     uint32_t GetMeasureTimeoutMs() const noexcept { return measure_timeout_ms_; }
@@ -297,7 +354,7 @@ public:
      * @return None with @p line filled; Timeout when no complete line is waiting.
      */
     DriverError TryReadReplyLine(char* line, std::size_t line_cap) noexcept {
-        return detail::ReadAsciiLine(uart_, line, line_cap, 0U);
+        return detail::ReadAsciiLine(uart_, line, line_cap, 0U, crc_required_);
     }
 
     /// Decode a `#VERS` reply line. @p device_error receives the `#ERRO` code (may be null).
@@ -454,7 +511,7 @@ private:
         uart_.flush_rx();
         uart_.write(reinterpret_cast<const uint8_t*>(tx), std::strlen(tx));
         const uint32_t tmo = (timeout_ms != 0U) ? timeout_ms : line_timeout_ms_;
-        return detail::ReadAsciiLine(uart_, line, line_cap, tmo);
+        return detail::ReadAsciiLine(uart_, line, line_cap, tmo, crc_required_);
     }
 
     UartT&   uart_;
@@ -462,6 +519,7 @@ private:
     uint32_t measure_timeout_ms_{250};
     uint32_t slow_timeout_ms_{12000};
     int32_t  last_device_error_{0};
+    bool     crc_required_{false};
 };
 
 }  // namespace fdo2

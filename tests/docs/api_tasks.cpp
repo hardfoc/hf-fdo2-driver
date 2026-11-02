@@ -109,6 +109,7 @@ void errors(Sensor& sensor) {
       break;
     case fdo2::DriverError::Timeout:                   // no reply: wiring, baud, power, still booting
     case fdo2::DriverError::ProtocolError:             // reply did not parse: noise, wrong baud, broadcast on
+    case fdo2::DriverError::CrcMismatch:               // #CRCE 1 checksum wrong: corrupted in transit
       sensor.MeasureMoxy();                            // the data sheet's advice: send the command again
       break;
     case fdo2::DriverError::DeviceError:               // #ERRO E

@@ -32,6 +32,7 @@ enum class DriverError : uint8_t {
     BufferOverflow,
     ProtocolError,
     DeviceError,
+    CrcMismatch,  ///< `#CRCE 1` checksum suffix did not match the reply, or was required and missing.
 };
 
 constexpr std::string_view ToString(DriverError e) noexcept {
@@ -42,6 +43,7 @@ constexpr std::string_view ToString(DriverError e) noexcept {
         case DriverError::BufferOverflow:   return "BufferOverflow";
         case DriverError::ProtocolError:    return "ProtocolError";
         case DriverError::DeviceError:      return "DeviceError";
+        case DriverError::CrcMismatch:      return "CrcMismatch";
     }
     return "?";
 }

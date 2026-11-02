@@ -118,13 +118,87 @@ TEST_CASE("A reply with the wrong header or field count is a ProtocolError") {
   CHECK(dev.ReadVersion().error == fdo2::DriverError::ProtocolError);
 }
 
-TEST_CASE("The driver strips a ' :<decimal>' CRC suffix before parsing") {
+// Data sheet §4.2: with #CRCE 1 every reply ends in ": C" before the CR, C being the CRC-16/MODBUS
+// (CRC-16-IBM) of every byte before the ':' as a decimal string. The data sheet gives no CRC
+// examples, so the expected values below are the CRC-16/MODBUS of the data sheet's own example
+// replies, computed independently (reflected polynomial 0xA001, initial value 0xFFFF).
+TEST_CASE("Crc16Modbus matches the CRC-16/MODBUS check value and the example replies") {
+  CHECK_EQ(fdo2::detail::Crc16Modbus("123456789", 9), 0x4B37U);
+  const auto crc = [](const char* s) { return fdo2::detail::Crc16Modbus(s, std::strlen(s)); };
+  CHECK_EQ(crc("#VERS 8 1 357 15"), 17525U);
+  CHECK_EQ(crc("#MOXY 203456 17892 0"), 43291U);
+  CHECK_EQ(crc("#MRAW 203456 -1965 1 24385 124072 12792 999734 40365"), 49266U);
+  CHECK_EQ(crc("#ERRO -26"), 51302U);
+}
+
+TEST_CASE("CRC: a reply ending in ': C' with the right checksum is verified and parsed") {
   MockFdo2 uart;
-  uart.crc_suffix = " :12345";
+  uart.crc_suffix = ": 43291"; // CRC of "#MOXY 203456 17892 0"
   Driver dev(uart);
   const auto m = dev.MeasureMoxy();
   REQUIRE(m.ok());
+  CHECK_EQ(m.value.o_raw, 203456);
+  CHECK_EQ(m.value.t_raw, 17892);
   CHECK_EQ(m.value.status_u32, 0U);
+
+  uart.crc_suffix = ": 49266"; // CRC of the #MRAW example
+  const auto r = dev.MeasureMraw();
+  REQUIRE(r.ok());
+  CHECK(near(r.value.rh_in_housing_pct, 40.365));
+
+  uart.crc_suffix = ": 17525"; // CRC of "#VERS 8 1 357 15"
+  REQUIRE(dev.ReadVersion().ok());
+}
+
+TEST_CASE("CRC: a wrong checksum is CrcMismatch, a malformed suffix a ProtocolError") {
+  MockFdo2 uart;
+  Driver dev(uart);
+  uart.crc_suffix = ": 43292"; // one off
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::CrcMismatch);
+  uart.moxy = "#MOXY 203457 17892 0"; // one corrupted digit, original checksum
+  uart.crc_suffix = ": 43291";
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::CrcMismatch);
+  uart.moxy = "#MOXY 203456 17892 0";
+  uart.crc_suffix = ": 65536"; // not a 16-bit value
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  uart.crc_suffix = ": 4329x";
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+  uart.crc_suffix = ":";
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::ProtocolError);
+}
+
+TEST_CASE("CRC: #ERRO replies carry the checksum too") {
+  MockFdo2 uart;
+  uart.override_reply["#MOXY"] = "#ERRO -26";
+  uart.crc_suffix = ": 51302";
+  Driver dev(uart);
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::DeviceError);
+  CHECK_EQ(dev.LastDeviceErrorCode(), -26);
+}
+
+TEST_CASE("CRC: SetCrcRequired rejects a reply without the suffix") {
+  MockFdo2 uart;
+  Driver dev(uart);
+  CHECK(!dev.IsCrcRequired());
+  REQUIRE(dev.MeasureMoxy().ok()); // no suffix, not required
+  dev.SetCrcRequired(true);
+  CHECK(dev.IsCrcRequired());
+  CHECK(dev.MeasureMoxy().error == fdo2::DriverError::CrcMismatch);
+  uart.crc_suffix = ": 43291";
+  CHECK(dev.MeasureMoxy().ok());
+}
+
+TEST_CASE("CRC: the split exchange verifies the checksum") {
+  MockFdo2 uart;
+  uart.respond = false;
+  Driver dev(uart);
+  REQUIRE(dev.SendMeasure(Driver::Measure::Moxy) == fdo2::DriverError::None);
+  char line[96];
+  uart.inject("#MOXY 203456 17892 0: 43291\r");
+  REQUIRE(dev.TryReadReplyLine(line, sizeof(line)) == fdo2::DriverError::None);
+  CHECK(std::strcmp(line, "#MOXY 203456 17892 0") == 0);
+  uart.inject("#MOXY 203456 17892 0: 1\r");
+  CHECK(dev.TryReadReplyLine(line, sizeof(line)) == fdo2::DriverError::CrcMismatch);
 }
 
 TEST_CASE("FlashLogo expects the #LOGO echo") {

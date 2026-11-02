@@ -99,11 +99,16 @@ Any other code is potentially fatal: the datasheet says to replace the sensor an
 
 ## Optional CRC
 
-`#CRCE 1` makes the module end every reply with a CRC-16 (the MODBUS polynomial, CRC-16-IBM) as decimal ASCII
-after a colon, computed over every character before the colon. The setting is stored in flash and survives a
-power cycle. The driver removes a trailing `" :<digits>"` before it parses a reply, but it does not check the
-CRC, and it never sends `#CRCE`. Without the CRC, the datasheet's first-level check is the echo of the command
-header, which the driver does compare.
+`#CRCE 1` makes the module end every reply with a colon, a space and a CRC-16 as decimal ASCII before the CR:
+`#MOXY 203456 17892 0: 43291`, then CR. The CRC is the MODBUS one (CRC-16-IBM: reflected polynomial `0xA001`,
+initial value `0xFFFF`, no final XOR) over every byte from the start of the reply up to, not including, the colon,
+spaces included. The setting is stored in flash and survives a power cycle.
+
+The driver checks the CRC of every reply that carries one, `#ERRO` replies included, and removes the suffix before
+it parses the reply. A wrong checksum returns `DriverError::CrcMismatch`; a colon not followed by a number from 0
+to 65535 returns `ProtocolError`. Call `SetCrcRequired(true)` on a module with the CRC on to reject replies that
+arrive without it. The driver never sends `#CRCE`. Without the CRC, the datasheet's first-level check is the echo
+of the command header, which the driver does compare.
 
 ## Commands the driver does not send
 

@@ -30,7 +30,7 @@ public:
 
   std::map<std::string, std::string> override_reply; ///< header -> reply line (without CR)
   bool respond = true;                               ///< false: the module stays silent
-  std::string crc_suffix;                            ///< appended before CR, e.g. " :12345"
+  std::string crc_suffix;                            ///< appended before CR, e.g. ": 43291" (§4.2)
 
   std::vector<std::string> commands; ///< every command line received, without terminator
   int flushes = 0;

@@ -3,7 +3,7 @@
 Symptoms you may see while bringing up an FDO2-G2, their causes and the fix for each.
 
 Start with the `DriverError` of the failing call (`fdo2::ToString(result.error)`): `Timeout` points at wiring,
-baud rate or power; `ProtocolError` at what arrives on RX; `DeviceError` at the command, with the module's code in
+baud rate or power; `ProtocolError` and `CrcMismatch` at what arrives on RX; `DeviceError` at the command, with the module's code in
 `LastDeviceErrorCode()`.
 
 ## No reply: every call returns `Timeout`
@@ -22,10 +22,16 @@ baud rate or power; `ProtocolError` at what arrives on RX; `DeviceError` at the 
 | --- | --- | --- |
 | Broadcast mode left on | `#MRAW` lines arrive without a command | Send `#BCST 0` once from a terminal; it is stored in flash |
 | Port returns partial lines | Errors come and go, worse at low timeouts | Return one whole line per `read()` |
-| CRC enabled with a different suffix format | Replies end in a colon and a number | The driver strips `" :<digits>"` only; send `#CRCE 0` once ([UART protocol](uart-protocol.md#optional-crc)) |
 | Noise or a 5 V signal on RXD | Garbled characters on a logic analyser | Level-shift the MCU's TX; shorten or shield the cable |
 
 The datasheet's advice for a garbled reply is to send the command again.
+
+## Checksum errors: `CrcMismatch`
+
+The module has the CRC on (`#CRCE 1`) and a reply's checksum did not match what arrived, or
+`SetCrcRequired(true)` is set and a reply came without one. A wrong checksum means the reply was corrupted on the
+line: send the command again, and look for noise or a level problem on RXD if it happens often. If every reply
+fails while the module's CRC is off, clear `SetCrcRequired()` ([UART protocol](uart-protocol.md#optional-crc)).
 
 ## `DeviceError` after `#ERRO`
 
