@@ -13,6 +13,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 namespace hf_fdo2_examples {
 
@@ -53,14 +54,46 @@ public:
         }
     }
 
+    /**
+     * @brief Return one complete reply line, CR included, as soon as its CR arrives (FDO2-G2 §4.1).
+     * @details Reads byte by byte with the time left of @p timeout_ms, so a reply is handed over
+     *          when it is complete instead of after the whole timeout. On timeout it returns 0 and
+     *          keeps the partial line for the next call; with @p timeout_ms = 0 it only takes bytes
+     *          already received. A line longer than the buffer loses its tail (and its CR), which the
+     *          driver rejects.
+     */
     std::size_t read(std::uint8_t* out, std::size_t max, std::uint32_t timeout_ms) noexcept {
-        const int n = uart_read_bytes(kPort, out, static_cast<int>(max), pdMS_TO_TICKS(timeout_ms));
-        return (n < 0) ? 0U : static_cast<std::size_t>(n);
+        const TickType_t start  = xTaskGetTickCount();
+        const TickType_t budget = pdMS_TO_TICKS(timeout_ms);
+        for (;;) {
+            const TickType_t elapsed = xTaskGetTickCount() - start;
+            const TickType_t wait    = (elapsed < budget) ? (budget - elapsed) : 0;
+            std::uint8_t byte        = 0;
+            if (uart_read_bytes(kPort, &byte, 1U, wait) != 1) {
+                return 0U;
+            }
+            if (len_ < sizeof(line_)) {
+                line_[len_++] = byte;
+            }
+            if (byte == '\r') {
+                const std::size_t n = (len_ < max) ? len_ : max;
+                std::memcpy(out, line_, n);
+                len_ = 0;
+                return n;
+            }
+        }
     }
 
-    void flush_rx() noexcept { uart_flush_input(kPort); }
+    void flush_rx() noexcept {
+        uart_flush_input(kPort);
+        len_ = 0;
+    }
 
     void delay_ms_impl(std::uint32_t ms) noexcept { vTaskDelay(pdMS_TO_TICKS(ms)); }
+
+private:
+    std::uint8_t line_[256]{};  ///< Longest reply: #MRAW with a CRC suffix, under 120 characters.
+    std::size_t  len_ = 0;
 };
 
 }  // namespace hf_fdo2_examples

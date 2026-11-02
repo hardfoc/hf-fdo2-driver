@@ -51,9 +51,9 @@ Rules the port must follow:
 
 The ESP32 examples use [`hf_fdo2_esp_uart.hpp`](../examples/esp32/main/include/hf_fdo2_esp_uart.hpp): a template
 `Fdo2EspIdfUart<port, tx_gpio, rx_gpio>` over the ESP-IDF UART driver, with a static `Install()` that configures
-19200 baud 8N1 and the pins. Its `read()` is a single `uart_read_bytes()` call, so each command takes the full
-timeout; the examples set the measurement timeout to 300 ms or 400 ms and accept that. Use the line-based `read()`
-above in a control loop.
+19200 baud 8N1 and the pins. Its `read()` follows the rules above: it reads one byte at a time with the time left
+of the timeout, returns at the CR, and keeps a partial line for the next call. The host tests build it against a
+model of the ESP-IDF UART calls (`tests/esp_idf_stub/`) and check that a command returns when the reply arrives.
 
 ## Check your port
 

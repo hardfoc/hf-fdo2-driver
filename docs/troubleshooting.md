@@ -64,8 +64,8 @@ The call succeeded but `MoxyStatusOkForOxygen()` is `false`: do not use the oxyg
 ## Calls take longer than the measurement
 
 Each `MeasureMoxy()` takes the full timeout (250 ms by default) instead of about 150 ms: the port's `read()` waits
-for `max` bytes or for the timeout instead of returning at the CR. The ESP32 example port behaves like this. Use
-the line-based port on [Porting](porting.md#uart-port).
+for `max` bytes or for the timeout instead of returning at the CR. Use the line-based port on
+[Porting](porting.md#uart-port), or the ESP32 example port, which returns at the CR.
 
 ## Still stuck
 

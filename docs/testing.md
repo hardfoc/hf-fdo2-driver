@@ -18,6 +18,8 @@ ctest --test-dir build-host --output-on-failure
 | File | Covers |
 | --- | --- |
 | [`tests/test_driver.cpp`](../tests/test_driver.cpp) | Commands, scaling of every field, status, `#ERRO` codes, timeouts, CRC verification, the split exchange |
+| [`tests/test_esp_uart.cpp`](../tests/test_esp_uart.cpp) | The ESP32 example port: returns at the CR, keeps a partial line, honours the timeout |
+| [`tests/esp_idf_stub/`](../tests/esp_idf_stub/esp_idf_stub.hpp) | A host model of the ESP-IDF UART and FreeRTOS calls that port uses |
 | [`tests/mock_fdo2.hpp`](../tests/mock_fdo2.hpp) | The sensor model and command log |
 | [`tests/test_harness.hpp`](../tests/test_harness.hpp) | A dependency-free test registry and `CHECK` macros |
 

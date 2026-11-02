@@ -25,6 +25,9 @@ code that used the affected API; together they call for a major version bump at 
   unsigned 32-bit, `#IDNR` unsigned 64-bit, no wrap-around of negative numbers), headers must match exactly,
   `#VERS` must carry exactly four values and `#LOGO` none, and a reply without its CR is a `ProtocolError`
   (data sheet §4.1).
+- ESP32 example port (`hf_fdo2_esp_uart.hpp`): `read()` was one `uart_read_bytes()` call for up to 511 bytes, so
+  every command waited for the whole timeout. It now returns as soon as the reply's CR arrives, and keeps a partial
+  line across calls with a timeout of 0, as the split exchange needs.
 
 ### Deprecated
 
