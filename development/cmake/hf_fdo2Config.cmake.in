@@ -1,6 +1,0 @@
-@PACKAGE_INIT@
-
-include("${CMAKE_CURRENT_LIST_DIR}/hf_fdo2ConfigVersion.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/hf_fdo2Targets.cmake" OPTIONAL)
-
-check_required_components(hf_fdo2)
