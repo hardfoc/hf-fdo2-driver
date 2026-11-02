@@ -990,6 +990,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#checksum-errors-crcmismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checksum errors: CrcMismatch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#deviceerror-after-erro" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1273,6 +1284,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#checksum-errors-crcmismatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checksum errors: CrcMismatch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#deviceerror-after-erro" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1355,8 +1377,8 @@
 <h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
 <p>Symptoms you may see while bringing up an FDO2-G2, their causes and the fix for each.</p>
 <p>Start with the <code>DriverError</code> of the failing call (<code>fdo2::ToString(result.error)</code>): <code>Timeout</code> points at wiring,
-baud rate or power; <code>ProtocolError</code> at what arrives on RX; <code>DeviceError</code> at the command, with the module's code in
-<code>LastDeviceErrorCode()</code>.</p>
+baud rate or power; <code>ProtocolError</code> and <code>CrcMismatch</code> at what arrives on RX; <code>DeviceError</code> at the command, with
+the module's code in <code>LastDeviceErrorCode()</code>.</p>
 <h2 id="no-reply-every-call-returns-timeout">No reply: every call returns <code>Timeout</code><a class="headerlink" href="#no-reply-every-call-returns-timeout" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1392,6 +1414,11 @@ baud rate or power; <code>ProtocolError</code> at what arrives on RX; <code>Devi
 <td>A logic analyser shows the reply, but the call times out</td>
 <td>The port must return at the CR (<a href="../porting/#uart-port">Porting</a>)</td>
 </tr>
+<tr>
+<td>Only <code>FlashLogo()</code> times out</td>
+<td>The LED flashes, but the <code>#LOGO</code> echo comes about 1 s later</td>
+<td>Keep <code>SetSlowCommandTimeoutMs()</code> above 1000 ms (default 12000 ms)</td>
+</tr>
 </tbody>
 </table>
 <h2 id="replies-that-do-not-parse-protocolerror">Replies that do not parse: <code>ProtocolError</code><a class="headerlink" href="#replies-that-do-not-parse-protocolerror" title="Permanent link">&para;</a></h2>
@@ -1411,13 +1438,8 @@ baud rate or power; <code>ProtocolError</code> at what arrives on RX; <code>Devi
 </tr>
 <tr>
 <td>Port returns partial lines</td>
-<td>Errors come and go, worse at low timeouts</td>
-<td>Return one whole line per <code>read()</code></td>
-</tr>
-<tr>
-<td>CRC enabled with a different suffix format</td>
-<td>Replies end in a colon and a number</td>
-<td>The driver strips <code>" :&lt;digits&gt;"</code> only; send <code>#CRCE 0</code> once (<a href="../uart-protocol/#optional-crc">UART protocol</a>)</td>
+<td>Errors come and go, worse at low timeouts; a line without its CR is rejected</td>
+<td>Return one whole line, CR included, per <code>read()</code></td>
 </tr>
 <tr>
 <td>Noise or a 5 V signal on RXD</td>
@@ -1427,6 +1449,11 @@ baud rate or power; <code>ProtocolError</code> at what arrives on RX; <code>Devi
 </tbody>
 </table>
 <p>The datasheet's advice for a garbled reply is to send the command again.</p>
+<h2 id="checksum-errors-crcmismatch">Checksum errors: <code>CrcMismatch</code><a class="headerlink" href="#checksum-errors-crcmismatch" title="Permanent link">&para;</a></h2>
+<p>The module has the CRC on (<code>#CRCE 1</code>) and a reply's checksum did not match what arrived, or
+<code>SetCrcRequired(true)</code> is set and a reply came without one. A wrong checksum means the reply was corrupted on the
+line: send the command again, and look for noise or a level problem on RXD if it happens often. If every reply
+fails while the module's CRC is off, clear <code>SetCrcRequired()</code> (<a href="../uart-protocol/#optional-crc">UART protocol</a>).</p>
 <h2 id="deviceerror-after-erro"><code>DeviceError</code> after <code>#ERRO</code><a class="headerlink" href="#deviceerror-after-erro" title="Permanent link">&para;</a></h2>
 <p>Read <code>LastDeviceErrorCode()</code> right after the failing call. Codes -21, -22 and -23 are transmission errors:
 repeat the command. Code -26 means the module did not recognise the command. Any code not in the
@@ -1498,14 +1525,14 @@ contact PyroScience.</p>
 <tr>
 <td>Readings creep after exposure to solvents, NO<sub>2</sub>, Cl<sub>2</sub> or heat above 60 °C</td>
 <td>Cross-sensitivity or ageing</td>
-<td>See section 3 of the <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/2905ecb001c4466da818b60f476edda085ae5b06/docs/datasheet/Datasheet_FDO2-G2.pdf">datasheet</a>; recalibrate or replace</td>
+<td>See section 3 of the <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/1522e8f86d51ff462e0eb46c01d7fd3ba786ae78/docs/datasheet/Datasheet_FDO2-G2.pdf">datasheet</a>; recalibrate or replace</td>
 </tr>
 </tbody>
 </table>
 <h2 id="calls-take-longer-than-the-measurement">Calls take longer than the measurement<a class="headerlink" href="#calls-take-longer-than-the-measurement" title="Permanent link">&para;</a></h2>
 <p>Each <code>MeasureMoxy()</code> takes the full timeout (250 ms by default) instead of about 150 ms: the port's <code>read()</code> waits
-for <code>max</code> bytes or for the timeout instead of returning at the CR. The ESP32 example port behaves like this. Use
-the line-based port on <a href="../porting/#uart-port">Porting</a>.</p>
+for <code>max</code> bytes or for the timeout instead of returning at the CR. Use the line-based port on
+<a href="../porting/#uart-port">Porting</a>, or the ESP32 example port, which returns at the CR.</p>
 <h2 id="still-stuck">Still stuck<a class="headerlink" href="#still-stuck" title="Permanent link">&para;</a></h2>
 <p>Open an <a href="https://github.com/hardfoc/hf-fdo2-driver/issues">issue</a> with a capture of the UART traffic, the
 <code>#VERS</code> reply (firmware revision) and the driver version from <code>fdo2::GetDriverVersion()</code>.</p>

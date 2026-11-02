@@ -1400,7 +1400,7 @@
 <p>How to do the common jobs with the driver: identify the module, measure, read raw data, measure without
 blocking and handle errors.</p>
 <p>Every snippet on this page is compiled by the host CI from
-<a href="https://github.com/hardfoc/hf-fdo2-driver/blob/2905ecb001c4466da818b60f476edda085ae5b06/tests/docs/api_tasks.cpp"><code>tests/docs/api_tasks.cpp</code></a>, with <code>Sensor</code> standing for <code>fdo2::Driver&lt;MyUart&gt;</code>. The
+<a href="https://github.com/hardfoc/hf-fdo2-driver/blob/1522e8f86d51ff462e0eb46c01d7fd3ba786ae78/tests/docs/api_tasks.cpp"><code>tests/docs/api_tasks.cpp</code></a>, with <code>Sensor</code> standing for <code>fdo2::Driver&lt;MyUart&gt;</code>. The
 <a href="../api-reference/">API reference</a> lists every member.</p>
 <h2 id="the-shape-of-the-api">The shape of the API<a class="headerlink" href="#the-shape-of-the-api" title="Permanent link">&para;</a></h2>
 <p>One <code>fdo2::Driver&lt;UartT&gt;</code> object per sensor. Each command is one call that sends the command, waits for the
@@ -1529,8 +1529,9 @@ nothing (<a href="../porting/#what-you-implement">Porting</a>). You own the time
 send the command again.</p>
 <h2 id="set-timeouts">Set timeouts<a class="headerlink" href="#set-timeouts" title="Permanent link">&para;</a></h2>
 <div class="language-cpp highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">sensor</span><span class="p">.</span><span class="n">SetMeasureTimeoutMs</span><span class="p">(</span><span class="mi">400</span><span class="p">);</span><span class="w">   </span><span class="c1">// #MOXY / #MRAW: covers M = 3 or 4 (up to about 300 ms)</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">sensor</span><span class="p">.</span><span class="n">SetLineTimeoutMs</span><span class="p">(</span><span class="mi">400</span><span class="p">);</span><span class="w">      </span><span class="c1">// #VERS, #IDNR, #LOGO</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensor</span><span class="p">.</span><span class="n">MeasureMoxy</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span><span class="w">             </span><span class="c1">// or per call, in ms</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">sensor</span><span class="p">.</span><span class="n">SetLineTimeoutMs</span><span class="p">(</span><span class="mi">400</span><span class="p">);</span><span class="w">      </span><span class="c1">// #VERS, #IDNR</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">sensor</span><span class="p">.</span><span class="n">SetSlowCommandTimeoutMs</span><span class="p">(</span><span class="mi">2000</span><span class="p">);</span><span class="w">  </span><span class="c1">// #LOGO: echoed after the ~1 s flash sequence</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensor</span><span class="p">.</span><span class="n">MeasureMoxy</span><span class="p">(</span><span class="mi">1000</span><span class="p">);</span><span class="w">             </span><span class="c1">// or per call, in ms</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -1549,7 +1550,12 @@ send the command again.</p>
 <tr>
 <td>Line</td>
 <td>400 ms</td>
-<td><code>ReadVersion()</code>, <code>ReadUniqueId()</code>, <code>FlashLogo()</code></td>
+<td><code>ReadVersion()</code>, <code>ReadUniqueId()</code></td>
+</tr>
+<tr>
+<td>Slow command</td>
+<td>12000 ms</td>
+<td><code>FlashLogo()</code>: the echo comes after the LED has flashed, about 1 s</td>
 </tr>
 </tbody>
 </table>
@@ -1562,19 +1568,20 @@ takes up to about 300 ms: raise the measurement timeout above that.</p>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="k">break</span><span class="p">;</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="no">fdo2</span><span class="o">::</span><span class="no">DriverError</span><span class="o">::</span><span class="no">Timeout</span><span class="p">:</span><span class="w">                   </span><span class="c1">// no reply: wiring, baud, power, still booting</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="no">fdo2</span><span class="o">::</span><span class="no">DriverError</span><span class="o">::</span><span class="no">ProtocolError</span><span class="p">:</span><span class="w">             </span><span class="c1">// reply did not parse: noise, wrong baud, broadcast on</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="n">sensor</span><span class="p">.</span><span class="n">MeasureMoxy</span><span class="p">();</span><span class="w">                            </span><span class="c1">// the data sheet's advice: send the command again</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="k">break</span><span class="p">;</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="no">fdo2</span><span class="o">::</span><span class="no">DriverError</span><span class="o">::</span><span class="no">DeviceError</span><span class="p">:</span><span class="w">               </span><span class="c1">// #ERRO E</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"#ERRO %"</span><span class="w"> </span><span class="n">PRId32</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">sensor</span><span class="p">.</span><span class="n">LastDeviceErrorCode</span><span class="p">());</span><span class="w">  </span><span class="c1">// -21, -22, -23: repeat; -26: unknown</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="k">break</span><span class="p">;</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">  </span><span class="k">default</span><span class="o">:</span>
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">fdo2</span><span class="o">::</span><span class="n">ToString</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">error</span><span class="p">).</span><span class="n">data</span><span class="p">());</span>
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="k">break</span><span class="p">;</span>
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="p">}</span>
-</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
-</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">status_u32</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">fdo2</span><span class="o">::</span><span class="n">moxy_status</span><span class="o">::</span><span class="n">kWarnHumidityHigh</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0U</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"humidity in the housing above 90 %%RH</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
-</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="p">}</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="no">fdo2</span><span class="o">::</span><span class="no">DriverError</span><span class="o">::</span><span class="no">CrcMismatch</span><span class="p">:</span><span class="w">               </span><span class="c1">// #CRCE 1 checksum wrong: corrupted in transit</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="n">sensor</span><span class="p">.</span><span class="n">MeasureMoxy</span><span class="p">();</span><span class="w">                            </span><span class="c1">// the data sheet's advice: send the command again</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="k">break</span><span class="p">;</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="no">fdo2</span><span class="o">::</span><span class="no">DriverError</span><span class="o">::</span><span class="no">DeviceError</span><span class="p">:</span><span class="w">               </span><span class="c1">// #ERRO E</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"#ERRO %"</span><span class="w"> </span><span class="n">PRId32</span><span class="w"> </span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">sensor</span><span class="p">.</span><span class="n">LastDeviceErrorCode</span><span class="p">());</span><span class="w">  </span><span class="c1">// -21, -22, -23: repeat; -26: unknown</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="k">break</span><span class="p">;</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">  </span><span class="k">default</span><span class="o">:</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">fdo2</span><span class="o">::</span><span class="n">ToString</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">error</span><span class="p">).</span><span class="n">data</span><span class="p">());</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="k">break</span><span class="p">;</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="p">}</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">status_u32</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">fdo2</span><span class="o">::</span><span class="n">moxy_status</span><span class="o">::</span><span class="n">kWarnHumidityHigh</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0U</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"humidity in the housing above 90 %%RH</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="p">}</span>
 </span></code></pre></div>
 <table>
 <thead>
@@ -1592,8 +1599,13 @@ takes up to about 300 ms: raise the measurement timeout above that.</p>
 </tr>
 <tr>
 <td><code>DriverError::ProtocolError</code></td>
-<td>A reply that did not parse: wrong header, wrong field count</td>
+<td>A reply that did not parse: wrong header or field count, a value that is not a number in range, no CR at the end</td>
 <td>Repeat the command; check the baud rate and broadcast mode</td>
+</tr>
+<tr>
+<td><code>DriverError::CrcMismatch</code></td>
+<td>With <code>#CRCE 1</code>: the reply's checksum is wrong, or missing while <code>SetCrcRequired(true)</code></td>
+<td>Repeat the command; see <a href="../uart-protocol/#optional-crc">optional CRC</a></td>
 </tr>
 <tr>
 <td><code>DriverError::DeviceError</code></td>
@@ -1617,7 +1629,8 @@ failed.</p>
 <h2 id="identify-a-sensor-on-a-port">Identify a sensor on a port<a class="headerlink" href="#identify-a-sensor-on-a-port" title="Permanent link">&para;</a></h2>
 <div class="language-cpp highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">return</span><span class="w"> </span><span class="n">sensor</span><span class="p">.</span><span class="n">FlashLogo</span><span class="p">().</span><span class="n">ok</span><span class="p">();</span><span class="w">    </span><span class="c1">// status LED flashes 4 times, about 1 s: which sensor is on this port</span>
 </span></code></pre></div>
-<p>With several modules on several UARTs, <code>FlashLogo()</code> shows which connector belongs to which port.</p>
+<p>With several modules on several UARTs, <code>FlashLogo()</code> shows which connector belongs to which port. The module
+answers only after the flash sequence, so the call blocks for about 1 s, up to the slow-command timeout.</p>
 <h2 id="next">Next<a class="headerlink" href="#next" title="Permanent link">&para;</a></h2>
 <p><a href="../configuration/">Configuration</a> lists every setting and default; <a href="../troubleshooting/">Troubleshooting</a> maps
 symptoms to causes.</p>

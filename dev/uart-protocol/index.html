@@ -1377,7 +1377,7 @@
 <h1 id="uart-protocol">UART protocol<a class="headerlink" href="#uart-protocol" title="Permanent link">&para;</a></h1>
 <p>The FDO2-G2's ASCII command protocol as the driver uses it: framing, commands, reply fields, status bits, error
 codes and the optional CRC.</p>
-<p>The source is section 4 of the <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/2905ecb001c4466da818b60f476edda085ae5b06/docs/datasheet/Datasheet_FDO2-G2.pdf">FDO2-G2 datasheet</a> (v5, 03/2026). Other
+<p>The source is section 4 of the <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/1522e8f86d51ff462e0eb46c01d7fd3ba786ae78/docs/datasheet/Datasheet_FDO2-G2.pdf">FDO2-G2 datasheet</a> (v5, 03/2026). Other
 PyroScience instruments use a different command set; this page and the driver apply to the FDO2-G2 only.</p>
 <h2 id="framing">Framing<a class="headerlink" href="#framing" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1388,7 +1388,10 @@ PyroScience instruments use a different command set; this page and the driver ap
 <li>Numbers are decimal ASCII in the range −2147483648 to 2147483647. The only exception is the <code>#IDNR</code> value, an
   unsigned 64-bit number of up to 20 digits.</li>
 </ul>
-<p>The driver sends the command, waits for one line, ignores a LF if one appears, and splits the line at spaces.</p>
+<p>The driver sends the command, waits for one line, ignores a LF if one appears, and splits the line at spaces. It
+accepts a reply only if it ends with the CR, the header matches the command exactly, the number of values is the
+one listed below, and every value is a decimal number in its range: signed 32-bit, unsigned 32-bit for the status
+<code>S</code>, unsigned 64-bit for <code>#IDNR</code>. Anything else is <code>DriverError::ProtocolError</code>.</p>
 <h2 id="commands-the-driver-sends">Commands the driver sends<a class="headerlink" href="#commands-the-driver-sends" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1422,7 +1425,7 @@ PyroScience instruments use a different command set; this page and the driver ap
 <tr>
 <td><code>#LOGO</code></td>
 <td><code>#LOGO</code></td>
-<td><code>FlashLogo()</code>: the status LED flashes 4 times, about 1 s</td>
+<td><code>FlashLogo()</code>: the status LED flashes 4 times, about 1 s, then the echo arrives</td>
 </tr>
 </tbody>
 </table>
@@ -1611,11 +1614,15 @@ is that rule.</p>
 </table>
 <p>Any other code is potentially fatal: the datasheet says to replace the sensor and contact PyroScience.</p>
 <h2 id="optional-crc">Optional CRC<a class="headerlink" href="#optional-crc" title="Permanent link">&para;</a></h2>
-<p><code>#CRCE 1</code> makes the module end every reply with a CRC-16 (the MODBUS polynomial, CRC-16-IBM) as decimal ASCII
-after a colon, computed over every character before the colon. The setting is stored in flash and survives a
-power cycle. The driver removes a trailing <code>" :&lt;digits&gt;"</code> before it parses a reply, but it does not check the
-CRC, and it never sends <code>#CRCE</code>. Without the CRC, the datasheet's first-level check is the echo of the command
-header, which the driver does compare.</p>
+<p><code>#CRCE 1</code> makes the module end every reply with a colon, a space and a CRC-16 as decimal ASCII before the CR:
+<code>#MOXY 203456 17892 0: 43291</code>, then CR. The CRC is the MODBUS one (CRC-16-IBM: reflected polynomial <code>0xA001</code>,
+initial value <code>0xFFFF</code>, no final XOR) over every byte from the start of the reply up to, not including, the colon,
+spaces included. The setting is stored in flash and survives a power cycle.</p>
+<p>The driver checks the CRC of every reply that carries one, <code>#ERRO</code> replies included, and removes the suffix before
+it parses the reply. A wrong checksum returns <code>DriverError::CrcMismatch</code>; a colon not followed by a number from 0
+to 65535 returns <code>ProtocolError</code>. Call <code>SetCrcRequired(true)</code> on a module with the CRC on to reject replies that
+arrive without it. The driver never sends <code>#CRCE</code>. Without the CRC, the datasheet's first-level check is the echo
+of the command header, which the driver does compare.</p>
 <h2 id="commands-the-driver-does-not-send">Commands the driver does not send<a class="headerlink" href="#commands-the-driver-does-not-send" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

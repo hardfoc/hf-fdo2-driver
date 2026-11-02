@@ -1380,18 +1380,18 @@ protocol has no addresses.</p>
 <td>Line timeout</td>
 <td><code>SetLineTimeoutMs(uint32_t)</code></td>
 <td>400 ms</td>
-<td><code>ReadVersion()</code>, <code>ReadUniqueId()</code>, <code>FlashLogo()</code></td>
+<td><code>ReadVersion()</code>, <code>ReadUniqueId()</code></td>
 </tr>
 <tr>
 <td>Slow-command timeout</td>
 <td><code>SetSlowCommandTimeoutMs(uint32_t)</code></td>
 <td>12000 ms</td>
-<td>Reserved: no current command uses it</td>
+<td><code>FlashLogo()</code>: the module echoes <code>#LOGO</code> only after the LED has flashed, about 1 s</td>
 </tr>
 </tbody>
 </table>
-<p>Read the first two back with <code>GetMeasureTimeoutMs()</code> and <code>GetLineTimeoutMs()</code>. The timeout is what the driver
-passes to your port's <code>read()</code>, so the port decides how precisely it is kept.</p>
+<p>Read them back with <code>GetMeasureTimeoutMs()</code>, <code>GetLineTimeoutMs()</code> and <code>GetSlowCommandTimeoutMs()</code>. The
+timeout is what the driver passes to your port's <code>read()</code>, so the port decides how precisely it is kept.</p>
 <h2 id="constants">Constants<a class="headerlink" href="#constants" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1443,7 +1443,7 @@ with a service tool, sparingly (about 20,000 flash cycles in the module's life).
 <td>CRC</td>
 <td><code>#CRCE K</code></td>
 <td>Off</td>
-<td>On: the driver strips a <code>" :&lt;digits&gt;"</code> suffix (<a href="../uart-protocol/#optional-crc">UART protocol</a>)</td>
+<td>On: the driver verifies the <code>": C"</code> checksum of every reply; call <code>SetCrcRequired(true)</code> (<a href="../uart-protocol/#optional-crc">UART protocol</a>)</td>
 </tr>
 <tr>
 <td>Calibration</td>

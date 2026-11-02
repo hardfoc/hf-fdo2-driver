@@ -1153,6 +1153,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#added" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1234,6 +1256,28 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#added" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1287,8 +1331,33 @@ affected API.</p>
   erratum from the datasheet. Corrected the default measurement timeout (250 ms, not 300 ms) and the transport
   contract: <code>read()</code> must return one complete reply line.</li>
 </ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Optional CRC (<code>#CRCE 1</code>): replies end in <code>": C"</code> (colon, space, decimal CRC) per data sheet §4.2; the driver
+  expected <code>" :C"</code>, so every reply with a checksum failed to parse. It now verifies the CRC-16/MODBUS over every
+  byte before the colon and returns the new <code>DriverError::CrcMismatch</code> on a wrong checksum.</li>
+<li>Reply parsing checked only the last value of a reply: a corrupted <code>O</code> or <code>T</code> in <code>#MOXY</code> (or any but <code>H</code> in
+  <code>#MRAW</code>, or <code>D</code>, <code>N</code>, <code>R</code> in <code>#VERS</code>) was accepted. Every value is now checked, including its range (<code>S</code>
+  unsigned 32-bit, <code>#IDNR</code> unsigned 64-bit, no wrap-around of negative numbers), headers must match exactly,
+  <code>#VERS</code> must carry exactly four values and <code>#LOGO</code> none, and a reply without its CR is a <code>ProtocolError</code>
+  (data sheet §4.1).</li>
+<li>ESP32 example port (<code>hf_fdo2_esp_uart.hpp</code>): <code>read()</code> was one <code>uart_read_bytes()</code> call for up to 511 bytes, so
+  every command waited for the whole timeout. It now returns as soon as the reply's CR arrives, and keeps a partial
+  line across calls with a timeout of 0, as the split exchange needs.</li>
+<li><code>SetSlowCommandTimeoutMs()</code> had no effect, and <code>FlashLogo()</code> waited only the 400 ms line timeout although the
+  module echoes <code>#LOGO</code> after its LED flash sequence of about 1 s (data sheet §4.1, §4.3), so it timed out.
+  <code>FlashLogo()</code> now waits up to the slow-command timeout (default 12000 ms).</li>
+</ul>
+<h3 id="deprecated">Deprecated<a class="headerlink" href="#deprecated" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>detail::StripOptionalModbusCrcSuffix()</code>: it removes the suffix without checking it. Use
+  <code>detail::VerifyAndStripCrc()</code>.</li>
+</ul>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
+<li><code>DriverError::CrcMismatch</code>, <code>detail::Crc16Modbus()</code> and <code>Driver::SetCrcRequired()</code> / <code>IsCrcRequired()</code> to
+  reject replies that arrive without the checksum.</li>
+<li><code>Driver::GetSlowCommandTimeoutMs()</code>.</li>
 <li>Host unit tests (<code>HF_FDO2_BUILD_TESTS</code>) that run the driver against a model of the FDO2-G2 command interface.</li>
 </ul>
 
