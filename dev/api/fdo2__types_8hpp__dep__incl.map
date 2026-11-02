@@ -1,0 +1,8 @@
+<map id="inc/fdo2_types.hpp" name="inc/fdo2_types.hpp">
+<area shape="rect" id="Node000001" title="FDO2&#45;G2 UART types, scaling, and status decoding (PyroScience data sheet v5)." alt="" coords="5,5,151,31"/>
+<area shape="rect" id="Node000002" href="$fdo2_8hpp.html" title="Umbrella header for the HF&#45;FDO2 (FDO2&#45;G2) UART driver." alt="" coords="27,152,129,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="66,44,51,79,50,99,55,118,72,150,67,153,50,120,45,99,46,78,61,42"/>
+<area shape="rect" id="Node000003" href="$fdo2__driver_8hpp.html" title="FDO2&#45;G2 UART command client (PyroScience data sheet v5, §4)." alt="" coords="61,79,207,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="98,40,127,77,123,80,94,43"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="118,117,89,154,85,150,114,113"/>
+</map>
