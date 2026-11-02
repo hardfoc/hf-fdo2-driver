@@ -1,0 +1,24 @@
+{
+  "calls": [
+    "ReadVersion",
+    "ReadUniqueId",
+    "MeasureMoxy",
+    "MeasureMraw",
+    "SendMeasure",
+    "TryReadReplyLine",
+    "ParseVersionLine",
+    "ParseMoxyLine",
+    "ParseMrawLine",
+    "FlashLogo"
+  ],
+  "port_hooks": [
+    "write",
+    "read",
+    "flush_rx",
+    "delay_ms_impl"
+  ],
+  "sources": [
+    "inc/fdo2_driver.hpp:Driver public calls",
+    "inc/fdo2_uart_interface.hpp:UartInterface"
+  ]
+}

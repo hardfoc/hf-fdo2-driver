@@ -1,34 +1,48 @@
 # Examples
 
-## ESP32-S3 (`examples/esp32`)
+Two ESP32-S3 applications that read an FDO2-G2: a minimal bring-up and a dual-rate demo.
 
-1. Initialize the tooling submodule:
+They run on an ESP32-S3 with the sensor on UART1 (MCU TX on GPIO47 to sensor RXD, MCU RX on GPIO21 from sensor
+TXD, 19200 baud 8N1); the pins are template arguments in each app's source and the port is
+[`hf_fdo2_esp_uart.hpp`](../examples/esp32/main/include/hf_fdo2_esp_uart.hpp). CI builds every app below on each
+pull request.
 
-   ```bash
-   cd examples/esp32
-   git submodule update --init --recursive
-   ```
+## The apps
 
-2. Build (ESP-IDF `release/v5.5`, target `esp32s3` from `app_config.yml`):
+<!-- generated: examples -->
+| App | What it shows | Source | CI |
+| --- | --- | --- | --- |
+| `fdo2_minimal_example` :material-star:{ title="featured" } | Smallest bring-up: identify the module, then read oxygen, pressure and humidity once a second | [`fdo2_minimal_example.cpp`](../examples/esp32/main/fdo2_minimal_example.cpp) | yes |
+| `fdo2_sensor_demo` :material-star:{ title="featured" } | Oxygen every 200 ms and the full raw data every 3 s, with the status check on every reading | [`fdo2_sensor_demo.cpp`](../examples/esp32/main/fdo2_sensor_demo.cpp) | yes |
 
-   ```bash
-   ./scripts/build_app.sh fdo2_minimal_example Debug
-   ./scripts/build_app.sh fdo2_sensor_demo Debug
-   ```
+Build and flash one (from `examples/esp32`, ESP-IDF environment loaded):
 
-3. Flash and monitor:
+```bash
+./scripts/build_app.sh fdo2_minimal_example Release
+./scripts/flash_app.sh flash_monitor fdo2_minimal_example Release
+```
 
-   ```bash
-   ./scripts/flash_app.sh flash_monitor fdo2_minimal_example Debug
-   ./scripts/flash_app.sh flash_monitor fdo2_sensor_demo Debug
-   ```
+Source of this table: [`examples/esp32/app_config.yml`](../examples/esp32/app_config.yml).
+<!-- /generated -->
 
-Both apps use **`UART_NUM_1`** with default pins **TX = GPIO47**, **RX = GPIO21**
-(see `main/include/hf_fdo2_esp_uart.hpp` and the `using Uart = …` alias in each
-`.cpp`). **`fdo2_minimal_example`** prints `#VERS`, `#IDNR`, and 1 Hz `#MRAW`.
-**`fdo2_sensor_demo`** runs **200 ms** `#MOXY` plus **3 s** `#MRAW` for bench O₂
-testing.
+## Set up once
 
-See [`examples/esp32/README.md`](https://github.com/hardfoc/hf-fdo2-driver/blob/main/examples/esp32/README.md) for matrix and override notes.
+```bash
+git submodule update --init examples/esp32/scripts   # the HardFOC ESP-IDF build scripts
+cd examples/esp32
+. $IDF_PATH/export.sh                                 # ESP-IDF v5.5
+./scripts/build_app.sh list                           # every app and build type
+```
 
-**Next:** [Troubleshooting →](troubleshooting.md)
+The scripts read [`app_config.yml`](../examples/esp32/app_config.yml) (the same file this page's table comes
+from) and build each app as its own firmware image.
+
+## What to read in an example
+
+| You want to | Read |
+| --- | --- |
+| See the smallest bring-up: boot delay, `#VERS`, `#IDNR`, a 1 Hz `#MRAW` loop | `fdo2_minimal_example.cpp` |
+| Read fast `#MOXY` every 200 ms and slow `#MRAW` every 3 s, with the status check | `fdo2_sensor_demo.cpp` |
+| Write an ESP-IDF port | `main/include/hf_fdo2_esp_uart.hpp` ([Porting](porting.md#reference-implementation)) |
+
+The [example folder's README](../examples/esp32/README.md) has the wiring and the build commands.

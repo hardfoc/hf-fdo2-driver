@@ -1,0 +1,14 @@
+{
+  "driver-layers": {
+    "title": "Three layers, one of them yours",
+    "alt": "Layer diagram: the application calls the hardware-agnostic FDO2 driver, which uses the CRTP UART interface, which calls the platform port you write, which drives the UART lines of the PyroScience FDO2-G2 oxygen sensor.",
+    "description": "From top to bottom. Your application talks to one fdo2::Driver<UartT> object, whose public calls (listed from inc/fdo2_driver.hpp) send the FDO2-G2's ASCII commands and decode the replies into readings in hPa, degrees Celsius, mbar and %RH. The communication interface (UartInterface in inc/fdo2_uart_interface.hpp) is a CRTP base that forwards bytes to your class. The platform port is the only code you write: a class that writes a command, returns one reply line and flushes the receive buffer. Below it is the sensor.",
+    "profile": "overview",
+    "width": 1200,
+    "source": "docs/diagrams/figures/driver-layers.py",
+    "sources": [
+      "inc/fdo2_driver.hpp:Driver public calls",
+      "inc/fdo2_uart_interface.hpp:UartInterface"
+    ]
+  }
+}

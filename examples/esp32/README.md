@@ -71,4 +71,4 @@ Shared header: **`main/include/hf_fdo2_esp_uart.hpp`** — template
 ## Protocol reference
 
 Use the **FDO2-G2** data sheet (v5) §4 as the authority. In-repo docs:
-[`../../docs/uart_protocol.md`](../../docs/uart_protocol.md).
+[`../../docs/uart-protocol.md`](../../docs/uart-protocol.md).
