@@ -47,3 +47,7 @@ venv/
 *.bin
 *.map
 *.lst
+site/
+
+# Host test build
+build-host/

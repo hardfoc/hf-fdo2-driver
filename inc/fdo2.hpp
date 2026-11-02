@@ -18,7 +18,7 @@
 
 namespace fdo2 {
 
-/** @brief Driver version string (from generated @ref fdo2_version.h). */
+/** @brief Driver version string (from the generated `fdo2_version.h`). */
 inline const char* GetDriverVersion() noexcept {
     return HF_FDO2_VERSION_STRING;
 }

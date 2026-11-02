@@ -1,101 +1,100 @@
----
-layout: default
-title: "HardFOC FDO2-G2 Driver"
-description: "Hardware-agnostic C++17 UART client for PyroScience FDO2-G2 optical oxygen sensors"
-nav_order: 1
-permalink: /
----
+# FDO2 Driver
 
-# HF-FDO2 Driver
+A C++17 driver for the PyroScience FDO2-G2 optical oxygen sensor: identify the module, measure oxygen partial
+pressure and temperature, read raw optical, pressure and humidity data, from any MCU with a UART.
 
-**Header-only C++17 UART client for the PyroScience FDO2-G2 optical oxygen sensor**
-(data sheet **v5**, **§4** UART API): `#VERS`, `#IDNR`, `#MOXY`, `#MRAW`, `#LOGO`,
-with engineering-unit decoding, optional **CRC** suffix stripping, and `#ERRO`
-codes via `LastDeviceErrorCode()`. Default baud after power-up is **19200** 8N1.
+[![Host tests](https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/ci-host-tests.yml/badge.svg?branch=main)](https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/ci-host-tests.yml)
+[![ESP32 examples](https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main)](https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/esp32-examples-build-ci.yml)
+[![Docs](https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/ci-docs-publish.yml/badge.svg?branch=main)](https://hardfoc.github.io/hf-fdo2-driver/)
+[![License: MIT](https://img.shields.io/github/license/hardfoc/hf-fdo2-driver)](LICENSE)
 
-[![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)](https://en.cppreference.com/w/cpp/17)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/esp32-examples-build-ci.yml/badge.svg?branch=main)](https://github.com/hardfoc/hf-fdo2-driver/actions/workflows/esp32-examples-build-ci.yml)
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://hardfoc.github.io/hf-fdo2-driver/)
+**Documentation: <https://hardfoc.github.io/hf-fdo2-driver/>**
 
-## Table of contents
+<!-- figure: driver-layers -->
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/driver-layers.dark.svg">
+  <img src="docs/diagrams/driver-layers.svg"
+    alt="Layer diagram: the application calls the hardware-agnostic FDO2 driver, which uses the CRTP UART
+    interface, which calls the platform port you write, which drives the UART lines of the PyroScience
+    FDO2-G2 oxygen sensor.">
+</picture>
+<!-- /figure -->
 
-1. [Overview](#overview)
-2. [Features](#features)
-3. [Quick start](#quick-start)
-4. [Documentation](#documentation)
-5. [Examples](#examples)
-6. [Official references](#official-references)
-7. [License](#license)
+## In 30 seconds
 
-## Overview
+Write a small port class for your MCU (write bytes, return one reply line, flush;
+[Porting](https://hardfoc.github.io/hf-fdo2-driver/latest/porting/)), then:
 
-> **[Live documentation (GitHub Pages)](https://hardfoc.github.io/hf-fdo2-driver/)** —
-> Installation, UART protocol tables, CMake, API summary, and troubleshooting.
-
-The driver targets **read-only measurement** commands suitable for host firmware:
-fast **`#MOXY`** for control loops and richer **`#MRAW`** when you need vent-side
-pressure **P**, internal RH **H**, dphi, and intensities. Flash-writing commands
-(`#CALO`, `#CAHI`, `#CRCE`, `#SETM`, `#BAUD`, …) are intentionally **not**
-implemented here (endurance and power-stability constraints in the data sheet).
-
-## Features
-
-- **CRTP** `fdo2::UartInterface<Derived>` — no virtual calls; you provide `write` /
-  `read` / `flush_rx`.
-- **`fdo2::Driver<UartT>`** — `ReadVersion`, `ReadUniqueId`, `MeasureMoxy`,
-  `MeasureMraw`, `FlashLogo`; timeouts configurable per command class.
-- **No heap allocation** in the driver framing path; fits FreeRTOS / bare metal.
-- **ESP32-S3** examples (`build_app.sh` matrix): **UART1**, default **TX=GPIO47** /
-  **RX=GPIO21**, **19200** 8N1, shared template `Fdo2EspIdfUart` — see
-  `examples/esp32/`.
-
-## Quick start
-
-CMake:
-
-```cmake
-add_subdirectory(/path/to/hf-fdo2-driver)
-target_link_libraries(your_target PRIVATE hf::fdo2)
-```
-
-Application:
-
+<!-- generated: quickstart-code -->
 ```cpp
 #include "fdo2.hpp"
+#include <cstdio>
 
-struct MyUart : fdo2::UartInterface<MyUart> {
-  void write(const uint8_t* d, size_t n);
-  size_t read(uint8_t* o, size_t m, uint32_t t);
-  void flush_rx();
-};
+int read_oxygen(MyUart& uart) {
+  fdo2::Driver<MyUart> sensor(uart);
+  uart.delay_ms(fdo2::kFdo2G2PowerUpSettleMs);          // 1. the module needs about 1 s after power-up
 
-MyUart uart;
-fdo2::Driver<MyUart> dev(uart);
-auto v = dev.ReadVersion();
-auto m = dev.MeasureMraw();  // or MeasureMoxy() for smallest frame
+  const auto version = sensor.ReadVersion();            // 2. identify: D = 8 for an FDO2-G2
+  if (!version || version.value.device_id != 8) {
+    return -1;                                          // wiring, baud rate or supply
+  }
+
+  const auto m = sensor.MeasureMoxy();                  // 3. one measurement, up to 150 ms
+  if (!m || !fdo2::MoxyStatusOkForOxygen(m.value.status_u32)) {
+    return -2;                                          // timeout, #ERRO or a fault bit in S
+  }
+  std::printf("pO2 %.3f hPa at %.3f C\n", m.value.p_o2_hpa, m.value.temp_c);  // 4. use it
+  return 0;
+}
 ```
+<!-- /generated -->
+
+## What it does
+
+- Sends the FDO2-G2's read-only commands: `#VERS`, `#IDNR`, `#MOXY`, `#MRAW`, `#LOGO`.
+- Scales every field to engineering units (hPa, °C, mbar, mV, %RH) and computes volume percent O<sub>2</sub>.
+- Returns a typed result for every call, decodes `#ERRO` codes and applies the datasheet's status rule.
+- Measures blocking (`MeasureMoxy()`) or split (`SendMeasure()`, `TryReadReplyLine()`) for loops that serve other
+  devices.
+- No heap, no exceptions, no RTOS, no virtual calls (the port is a CRTP class), and no command that writes the
+  module's flash.
+
+## Install
+
+```bash
+git submodule add https://github.com/hardfoc/hf-fdo2-driver.git external/hf-fdo2-driver
+```
+
+```cmake
+add_subdirectory(external/hf-fdo2-driver)
+target_link_libraries(my_app PRIVATE hf::fdo2)
+```
+
+ESP-IDF: use the component wrapper in [`examples/esp32/components/hf_fdo2`](examples/esp32/components/hf_fdo2/CMakeLists.txt).
+Details: [Installation](https://hardfoc.github.io/hf-fdo2-driver/latest/installation/).
 
 ## Documentation
 
-| Topic | Link |
-|--------|------|
-| Doc hub | [docs/index.md](docs/index.md) |
-| UART protocol | [docs/uart_protocol.md](docs/uart_protocol.md) |
-| API / CMake / hardware | [docs/](docs/) |
-| Doxygen | `_config/Doxyfile` → run `doxygen _config/Doxyfile` from repo root |
+| | |
+| --- | --- |
+| [Quickstart](https://hardfoc.github.io/hf-fdo2-driver/latest/quickstart/) | Wire it, write the port, read oxygen |
+| [Hardware](https://hardfoc.github.io/hf-fdo2-driver/latest/hardware/) | Connector, UART settings, timing, power |
+| [UART protocol](https://hardfoc.github.io/hf-fdo2-driver/latest/uart-protocol/) | Commands, fields, status bits, error codes |
+| [API guide](https://hardfoc.github.io/hf-fdo2-driver/latest/api-guide/) | Identify, measure, raw data, errors |
+| [Examples](https://hardfoc.github.io/hf-fdo2-driver/latest/examples/) | ESP32-S3 applications |
+| [API reference](https://hardfoc.github.io/hf-fdo2-driver/latest/api/) | Doxygen, every class and member |
 
-## Examples
+The pages are in [`docs/`](docs/index.md); the datasheet is in [`docs/datasheet/`](docs/datasheet/Datasheet_FDO2-G2.pdf).
 
-- **ESP32 workflow:** [examples/esp32/README.md](examples/esp32/README.md)
-- **Build script:** `examples/esp32/scripts/build_app.sh`
+## Tests
 
-## Official references
+```bash
+cmake -S . -B build-host -DHF_FDO2_BUILD_TESTS=ON && cmake --build build-host && ctest --test-dir build-host
+```
 
-Use the **FDO2-G2** data sheet and firmware notes for calibration, measurement
-modes, broadcast, and flash lifetime. Other PyroScience products may use
-different UART command sets.
+The host tests run the driver against a model of the sensor; the code on the documentation site is compiled by
+the same build.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

@@ -1,53 +1,68 @@
----
-layout: default
-title: "Quick start"
-nav_order: 2
-parent: "Documentation"
-permalink: /docs/quickstart/
----
+# Quickstart
 
-# Quick start
+Read oxygen from your MCU: wire four pins, write a small port class, call three driver functions.
 
-You supply a **CRTP** adapter that inherits `fdo2::UartInterface<YourType>` and
-implements three calls: `write`, `read`, `flush_rx`. Optional `delay_ms_impl`
-helps with boot delays.
+## 1. Wire it
 
-## 1. Wire and baud
+| MCU | FDO2-G2 connector | Notes |
+| --- | --- | --- |
+| UART TX | pin 3, RXD | Sensor input, 3.0 V levels, 3.3 V maximum |
+| UART RX | pin 2, TXD | Sensor output, 3.0 V levels |
+| GND | pin 1, GND | Common ground |
+| 3.3 V to 5.0 V | pin 4, VCC | 40 mA peak during a measurement |
 
-- Default UART after sensor power-up: **19200**, **8N1**, no handshake (data sheet §4).
-- Allow **~1 s** after power-up before the first command (`kFdo2G2PowerUpSettleMs`).
+Set the UART to 19200 baud, 8 data bits, no parity, 1 stop bit, no flow control. A 5 V MCU needs a level
+shifter on its TX line. The [Hardware](hardware.md) page has the connector, the timing and the electrical limits.
 
-## 2. Minimal adapter (sketch)
+## 2. Add the driver
 
-```cpp
-#include "fdo2.hpp"
+Add the repository as a submodule and link the `hf::fdo2` CMake target (or add `inc/` to your include path and
+build with C++17). [Installation](installation.md) covers CMake and ESP-IDF.
 
-struct MyUart : fdo2::UartInterface<MyUart> {
-  void write(const uint8_t* d, size_t n);
-  size_t read(uint8_t* o, size_t m, uint32_t timeout_ms);
-  void flush_rx();
-};
+```bash
+git submodule add https://github.com/hardfoc/hf-fdo2-driver.git external/hf-fdo2-driver
 ```
 
-## 3. First measurements
+## 3. Write the port
 
-```cpp
-MyUart uart;
-fdo2::Driver<MyUart> dev(uart);
-dev.SetMeasureTimeoutMs(300);
+The port is the only platform code. It writes bytes, returns one complete reply line and flushes the receive
+buffer. Replace the five `platform_*` calls with your SDK's.
 
-auto v = dev.ReadVersion();          // #VERS D N R S
-auto m = dev.MeasureMoxy();          // fastest: #MOXY O T S
-// or: auto r = dev.MeasureMraw();   // adds pressure, RH, dphi, intensities
+```cpp title="my_uart.hpp"
+--8<-- "tests/docs/my_uart.hpp:port"
 ```
 
-Decode fields are ready in `MoxyReading` / `MrawReading` (`p_o2_hpa`, `temp_c`,
-`status_u32`, …). Use `fdo2::MoxyStatusOkForOxygen(s)` to assert **S ≤ 1** as
-recommended in the data sheet.
+`read()` must return a whole line ending in CR, or nothing. [Porting](porting.md) explains why and lists the
+rules for each method.
 
-## 4. Volume % O₂
+## 4. Read oxygen
 
-When membrane pressure matches the vent-side pressure from `#MRAW` **P**, use
-`VolumePercentO2(p_o2_hpa, pressure_mbar)` (see [UART protocol](uart_protocol.md)).
+```cpp title="main.cpp"
+--8<-- "tests/docs/quickstart.cpp:quickstart"
+```
 
-**Next:** [UART protocol →](uart_protocol.md)
+What each step does:
+
+1. The module answers commands about 1 s after power-up. `kFdo2G2PowerUpSettleMs` is 1100 ms.
+2. `ReadVersion()` sends `#VERS` and checks that a module answers. An FDO2-G2 reports device id 8.
+3. `MeasureMoxy()` sends `#MOXY`, waits for the reply and scales it. `MoxyStatusOkForOxygen()` accepts the
+   status values 0 and 1 only: any other value means the oxygen or temperature reading can be wrong.
+4. `p_o2_hpa` is the oxygen partial pressure in hPa and `temp_c` the sensor temperature in °C.
+
+Allow 3 minutes of warm-up for full accuracy. This example is built by the host CI, so it compiles against the
+current headers.
+
+## If it does not work
+
+| Symptom | First thing to check |
+| --- | --- |
+| `ReadVersion()` returns `Timeout` | TX and RX crossed (MCU TX to sensor RXD), 19200 baud, supply, 1 s boot delay |
+| `ProtocolError` on every call | Baud rate, or broadcast mode left on by another tool ([Troubleshooting](troubleshooting.md)) |
+| `DeviceError` | Read `LastDeviceErrorCode()`; the codes are in [UART protocol](uart-protocol.md#error-codes) |
+| Status not 0 or 1 | Ambient light, condensation on the membrane, a sensor fault ([Troubleshooting](troubleshooting.md#status-is-not-0-or-1)) |
+
+## Next
+
+- [API guide](api-guide.md): raw data, volume percent, non-blocking measurement, errors.
+- [Examples](examples.md): two complete ESP32-S3 applications.
+- [UART protocol](uart-protocol.md): every command and field the driver uses.

@@ -168,8 +168,8 @@ inline MrawReading DecodeMraw(int32_t o_raw, int32_t t_raw, uint32_t s, int32_t 
 /**
  * @brief Volume % O₂ when p_air at the sensing membrane equals back-side pressure **P**.
  *
- * @param p_o2_hpa Partial pressure O₂ [hPa] (from #MOXY / #MRAW **O** scaling).
- * @param p_air_mbar Ambient / vent-path pressure [mbar] (from #MRAW **P** scaling;
+ * @param p_o2_hpa Partial pressure O₂ [hPa] (from `#MOXY` / `#MRAW` **O** scaling).
+ * @param p_air_mbar Ambient / vent-path pressure [mbar] (from `#MRAW` **P** scaling;
  *                   mbar ≈ hPa for this ratio per data sheet §2).
  */
 inline double VolumePercentO2(double p_o2_hpa, double p_air_mbar) noexcept {

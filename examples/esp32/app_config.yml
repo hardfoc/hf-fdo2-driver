@@ -11,7 +11,7 @@ metadata:
 
 apps:
   fdo2_minimal_example:
-    description: "FDO2-G2 §4: #VERS, #IDNR, 1 Hz #MRAW — UART1 TX=GPIO47 RX=GPIO21 @19200 (ESP32-S3 default in source)"
+    description: "Smallest bring-up: identify the module, then read oxygen, pressure and humidity once a second"
     source_file: "fdo2_minimal_example.cpp"
     category: "example"
     idf_versions: ["release/v5.5"]
@@ -24,7 +24,7 @@ apps:
       - "Decode #MRAW O T S D I A P H per data sheet v5"
 
   fdo2_sensor_demo:
-    description: "Bring-up demo: fast #MOXY (200 ms) + slow #MRAW (3 s) on UART1 TX=47 RX=21 @19200"
+    description: "Oxygen every 200 ms and the full raw data every 3 s, with the status check on every reading"
     source_file: "fdo2_sensor_demo.cpp"
     category: "example"
     idf_versions: ["release/v5.5"]
