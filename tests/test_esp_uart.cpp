@@ -63,3 +63,13 @@ TEST_CASE("ESP32 port: flush_rx drops a partial line") {
   REQUIRE(n == 6U);
   CHECK(std::memcmp(buf, "#LOGO\r", n) == 0);
 }
+
+TEST_CASE("ESP32 port: a uart_write_bytes() error reaches the driver as SerialError") {
+  stub::reset();
+  stub::state().write_result = -1;
+  EspUart uart;
+  fdo2::Driver<EspUart> dev(uart);
+  const auto m = dev.MeasureMoxy();
+  CHECK(m.error == fdo2::DriverError::SerialError);
+  CHECK_EQ(stub::state().now, 0U); // no reply awaited
+}
