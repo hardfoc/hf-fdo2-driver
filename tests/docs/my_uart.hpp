@@ -14,7 +14,7 @@
 #include <cstring>
 
 // Platform hooks: your SDK's calls. Declared only, so the docs build checks the port compiles.
-void platform_uart_write(const uint8_t* data, std::size_t len) noexcept;  // 19200 baud, 8N1
+bool platform_uart_write(const uint8_t* data, std::size_t len) noexcept;  // 19200 baud, 8N1; false on error
 bool platform_uart_read_byte(uint8_t& byte) noexcept;                     // non-blocking: false when empty
 void platform_uart_flush() noexcept;                                      // drop received bytes
 uint32_t platform_millis() noexcept;
@@ -24,7 +24,10 @@ void platform_delay_ms(uint32_t ms) noexcept;
 class MyUart : public fdo2::UartInterface<MyUart> {
 public:
   // Send one command line (the driver adds the CR).
-  void write(const uint8_t* data, std::size_t length) noexcept { platform_uart_write(data, length); }
+  // Return false when the UART did not take every byte: the call then fails with SerialError.
+  bool write(const uint8_t* data, std::size_t length) noexcept {
+    return platform_uart_write(data, length);
+  }
 
   // Return one complete reply line, CR included, or 0 if none arrived within timeout_ms.
   // timeout_ms == 0 means "only if a whole line is already here".
