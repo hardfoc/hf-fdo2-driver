@@ -20,11 +20,15 @@
 #include "fdo2_uart_interface.hpp"
 
 #include <cctype>
+#include <cstddef>
+#include <cstdint>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 
 namespace fdo2 {
 namespace detail {
@@ -278,6 +282,12 @@ inline bool IsErroHeader(const char* tok0) noexcept {
  */
 template <typename UartT>
 class Driver {
+    static_assert(std::is_same_v<decltype(std::declval<UartT&>().write(
+                                     static_cast<const uint8_t*>(nullptr), std::size_t{0})),
+                                 bool>,
+                  "fdo2::Driver: the port's write(const uint8_t*, std::size_t) must return bool "
+                  "(true = every byte accepted, false = serial error)");
+
 public:
     explicit Driver(UartT& uart) noexcept : uart_(uart) {}
 
