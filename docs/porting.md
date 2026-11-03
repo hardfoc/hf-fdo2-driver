@@ -21,7 +21,7 @@ to allocate.
 
 | Method | Contract |
 | --- | --- |
-| `write(data, length)` | Send `length` bytes: one command, CR included. Return when they are queued or sent |
+| `bool write(data, length)` | Send `length` bytes: one command, CR included. Return when they are queued or sent: `true` when every byte was taken, `false` on a UART error (the call then fails with `DriverError::SerialError`, without waiting for a reply). Must return `bool` (checked at compile time) |
 | `read(out, max, timeout_ms)` | Return one complete reply line, CR included, as a byte count; 0 if no whole line arrived within `timeout_ms`. With `timeout_ms` = 0, return only a line that is already complete |
 | `flush_rx()` | Drop everything received so far, including a partial line |
 | `delay_ms_impl(ms)` | Optional. Block for at least `ms`; `UartInterface::delay_ms()` calls it, and does nothing without it |

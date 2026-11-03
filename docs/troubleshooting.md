@@ -3,7 +3,7 @@
 Symptoms you may see while bringing up an FDO2-G2, their causes and the fix for each.
 
 Start with the `DriverError` of the failing call (`fdo2::ToString(result.error)`): `Timeout` points at wiring,
-baud rate or power; `ProtocolError` and `CrcMismatch` at what arrives on RX; `DeviceError` at the command, with
+baud rate or power; `SerialError` at the host UART (the port's `write()` failed); `ProtocolError` and `CrcMismatch` at what arrives on RX; `DeviceError` at the command, with
 the module's code in `LastDeviceErrorCode()`.
 
 ## No reply: every call returns `Timeout`

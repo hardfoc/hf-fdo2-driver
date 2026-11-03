@@ -90,6 +90,7 @@ takes up to about 300 ms: raise the measurement timeout above that.
 | Signal | Meaning | What to do |
 | --- | --- | --- |
 | `DriverError::Timeout` | No reply within the timeout | Check wiring, baud rate, supply; wait 1 s after power-up |
+| `DriverError::SerialError` | The port's `write()` returned `false`: the command was not sent, and no reply was awaited | The UART driver and the port |
 | `DriverError::ProtocolError` | A reply that did not parse: wrong header or field count, a value that is not a number in range, no CR at the end | Repeat the command; check the baud rate and broadcast mode |
 | `DriverError::CrcMismatch` | With `#CRCE 1`: the reply's checksum is wrong, or missing while `SetCrcRequired(true)` | Repeat the command; see [optional CRC](uart-protocol.md#optional-crc) |
 | `DriverError::DeviceError` | `#ERRO E` | `LastDeviceErrorCode()`; [error codes](uart-protocol.md#error-codes) |
