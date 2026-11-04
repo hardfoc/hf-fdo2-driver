@@ -1192,7 +1192,7 @@
 <p>How to do the common jobs with the driver: identify the module, measure, read raw data, measure without
 blocking and handle errors.</p>
 <p>Every snippet on this page is compiled by the host CI from
-<a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/tests/docs/api_tasks.cpp"><code>tests/docs/api_tasks.cpp</code></a>, with <code>Sensor</code> standing for <code>fdo2::Driver&lt;MyUart&gt;</code>. The
+<a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/tests/docs/api_tasks.cpp"><code>tests/docs/api_tasks.cpp</code></a>, with <code>Sensor</code> standing for <code>fdo2::Driver&lt;MyUart&gt;</code>. The
 <a href="../api-reference/">API reference</a> lists every member.</p>
 <h2 id="the-shape-of-the-api">The shape of the API<a class="headerlink" href="#the-shape-of-the-api" title="Permanent link">&para;</a></h2>
 <p>One <code>fdo2::Driver&lt;UartT&gt;</code> object per sensor. Each command is one call that sends the command, waits for the
@@ -1388,6 +1388,11 @@ takes up to about 300 ms: raise the measurement timeout above that.</p>
 <td><code>DriverError::Timeout</code></td>
 <td>No reply within the timeout</td>
 <td>Check wiring, baud rate, supply; wait 1 s after power-up</td>
+</tr>
+<tr>
+<td><code>DriverError::SerialError</code></td>
+<td>The port's <code>write()</code> returned <code>false</code>: the command was not sent, and no reply was awaited</td>
+<td>The UART driver and the port</td>
 </tr>
 <tr>
 <td><code>DriverError::ProtocolError</code></td>

@@ -1109,7 +1109,7 @@ folder with the generated <code>fdo2_version.h</code>, and requires C++17 (<code
 </tbody>
 </table>
 <h2 id="esp-idf">ESP-IDF<a class="headerlink" href="#esp-idf" title="Permanent link">&para;</a></h2>
-<p>The ESP-IDF component wrapper is <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/examples/esp32/components/hf_fdo2/CMakeLists.txt"><code>examples/esp32/components/hf_fdo2/</code></a>.
+<p>The ESP-IDF component wrapper is <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/examples/esp32/components/hf_fdo2/CMakeLists.txt"><code>examples/esp32/components/hf_fdo2/</code></a>.
 Copy that folder into your project's <code>components/</code> (or point <code>EXTRA_COMPONENT_DIRS</code> at it) and set the
 <code>HF_FDO2_ROOT</code> cache variable to the driver checkout; the wrapper stops with a clear message when the path is
 wrong. Your component then declares <code>REQUIRES hf_fdo2</code>. The wrapper itself requires the IDF <code>driver</code> component.</p>
@@ -1125,17 +1125,17 @@ wrong. Your component then declares <code>REQUIRES hf_fdo2</code>. The wrapper i
 <tbody>
 <tr>
 <td>Settings</td>
-<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/cmake/hf_fdo2_build_settings.cmake"><code>cmake/hf_fdo2_build_settings.cmake</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/cmake/hf_fdo2_build_settings.cmake"><code>cmake/hf_fdo2_build_settings.cmake</code></a></td>
 <td>Include directories, version, IDF requirements: the single source of truth</td>
 </tr>
 <tr>
 <td>Library</td>
-<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/CMakeLists.txt"><code>CMakeLists.txt</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/CMakeLists.txt"><code>CMakeLists.txt</code></a></td>
 <td><code>INTERFACE</code> target for host builds and CI</td>
 </tr>
 <tr>
 <td>ESP-IDF</td>
-<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/examples/esp32/components/hf_fdo2/CMakeLists.txt"><code>examples/esp32/components/hf_fdo2/CMakeLists.txt</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/examples/esp32/components/hf_fdo2/CMakeLists.txt"><code>examples/esp32/components/hf_fdo2/CMakeLists.txt</code></a></td>
 <td>IDF component wrapper over the same settings</td>
 </tr>
 </tbody>

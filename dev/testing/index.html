@@ -1051,29 +1051,29 @@ deliver a reply later. Every command the driver sends is logged, so tests check 
 </thead>
 <tbody>
 <tr>
-<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/tests/test_driver.cpp"><code>tests/test_driver.cpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/tests/test_driver.cpp"><code>tests/test_driver.cpp</code></a></td>
 <td>Commands, scaling of every field, status, <code>#ERRO</code> codes, timeouts, CRC verification, the split exchange</td>
 </tr>
 <tr>
-<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/tests/test_esp_uart.cpp"><code>tests/test_esp_uart.cpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/tests/test_esp_uart.cpp"><code>tests/test_esp_uart.cpp</code></a></td>
 <td>The ESP32 example port: returns at the CR, keeps a partial line, honours the timeout</td>
 </tr>
 <tr>
-<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/tests/esp_idf_stub/esp_idf_stub.hpp"><code>tests/esp_idf_stub/</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/tests/esp_idf_stub/esp_idf_stub.hpp"><code>tests/esp_idf_stub/</code></a></td>
 <td>A host model of the ESP-IDF UART and FreeRTOS calls that port uses</td>
 </tr>
 <tr>
-<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/tests/mock_fdo2.hpp"><code>tests/mock_fdo2.hpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/tests/mock_fdo2.hpp"><code>tests/mock_fdo2.hpp</code></a></td>
 <td>The sensor model and command log</td>
 </tr>
 <tr>
-<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/tests/test_harness.hpp"><code>tests/test_harness.hpp</code></a></td>
+<td><a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/tests/test_harness.hpp"><code>tests/test_harness.hpp</code></a></td>
 <td>A dependency-free test registry and <code>CHECK</code> macros</td>
 </tr>
 </tbody>
 </table>
 <h2 id="documentation-snippets">Documentation snippets<a class="headerlink" href="#documentation-snippets" title="Permanent link">&para;</a></h2>
-<p>Every C++ block on this site is included from <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/tests/docs/my_uart.hpp"><code>tests/docs/</code></a>, which the host build
+<p>Every C++ block on this site is included from <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/tests/docs/my_uart.hpp"><code>tests/docs/</code></a>, which the host build
 compiles (target <code>hf_fdo2_doc_snippets</code>) with the driver instantiated over the documented port. A change to the API
 that breaks a page breaks the build first.</p>
 <h2 id="ci-workflows">CI workflows<a class="headerlink" href="#ci-workflows" title="Permanent link">&para;</a></h2>

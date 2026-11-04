@@ -1169,7 +1169,7 @@
 <h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
 <p>Symptoms you may see while bringing up an FDO2-G2, their causes and the fix for each.</p>
 <p>Start with the <code>DriverError</code> of the failing call (<code>fdo2::ToString(result.error)</code>): <code>Timeout</code> points at wiring,
-baud rate or power; <code>ProtocolError</code> and <code>CrcMismatch</code> at what arrives on RX; <code>DeviceError</code> at the command, with
+baud rate or power; <code>SerialError</code> at the host UART (the port's <code>write()</code> failed); <code>ProtocolError</code> and <code>CrcMismatch</code> at what arrives on RX; <code>DeviceError</code> at the command, with
 the module's code in <code>LastDeviceErrorCode()</code>.</p>
 <h2 id="no-reply-every-call-returns-timeout">No reply: every call returns <code>Timeout</code><a class="headerlink" href="#no-reply-every-call-returns-timeout" title="Permanent link">&para;</a></h2>
 <table>
@@ -1317,7 +1317,7 @@ contact PyroScience.</p>
 <tr>
 <td>Readings creep after exposure to solvents, NO<sub>2</sub>, Cl<sub>2</sub> or heat above 60 °C</td>
 <td>Cross-sensitivity or ageing</td>
-<td>See section 3 of the <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/b6d10b663231daa500edd1bc80f4c2de6683aafd/docs/datasheet/Datasheet_FDO2-G2.pdf">datasheet</a>; recalibrate or replace</td>
+<td>See section 3 of the <a href="https://github.com/hardfoc/hf-fdo2-driver/blob/ebe52385e16af7d1f705d8fc0798461918d50a66/docs/datasheet/Datasheet_FDO2-G2.pdf">datasheet</a>; recalibrate or replace</td>
 </tr>
 </tbody>
 </table>
