@@ -1,0 +1,41 @@
+<map id="inc/fdo2.hpp" name="inc/fdo2.hpp">
+<area shape="rect" id="Node000001" title="Umbrella header for the HF&#45;FDO2 (FDO2&#45;G2) UART driver." alt="" coords="506,5,609,31"/>
+<area shape="rect" id="Node000002" href="$fdo2__uart__interface_8hpp.html" title="CRTP byte transport for the PyroScience Unified Protocol (PSUP)." alt="" coords="747,152,925,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="567,29,593,65,612,85,633,102,690,129,748,146,747,152,688,134,631,106,608,89,589,69,562,33"/>
+<area shape="rect" id="Node000007" href="$fdo2__types_8hpp.html" title="FDO2&#45;G2 UART types, scaling, and status decoding (PyroScience data sheet v5)." alt="" coords="5,152,128,177"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="519,33,120,151,118,145,518,28"/>
+<area shape="rect" id="Node000010" href="$fdo2__driver_8hpp.html" title="FDO2&#45;G2 UART command client (PyroScience data sheet v5, §4)." alt="" coords="447,79,569,104"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="551,33,526,69,522,66,547,29"/>
+<area shape="rect" id="Node000016" title=" " alt="" coords="645,79,763,104"/>
+<area shape="poly" id="edge23_Node000001_Node000016" title=" " alt="" coords="582,28,669,70,667,75,580,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="955,225,1026,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="862,175,954,217,952,222,860,180"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="449,225,516,251"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="780,180,530,230,529,225,779,175"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="637,225,729,251"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="812,180,721,222,719,217,810,175"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="827,225,887,251"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="842,177,853,211,847,213,837,178"/>
+<area shape="poly" id="edge8_Node000007_Node000004" title=" " alt="" coords="128,174,436,226,435,231,128,179"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="35,225,98,251"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="69,178,69,212,64,212,64,178"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="225,225,322,251"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="101,175,228,218,226,223,99,180"/>
+<area shape="poly" id="edge12_Node000010_Node000002" title=" " alt="" coords="561,101,770,146,769,152,560,107"/>
+<area shape="poly" id="edge14_Node000010_Node000003" title=" " alt="" coords="570,96,804,123,909,138,960,150,973,163,981,179,991,211,986,213,977,181,968,166,957,154,908,143,803,128,569,102"/>
+<area shape="poly" id="edge15_Node000010_Node000004" title=" " alt="" coords="509,105,490,212,484,211,503,104"/>
+<area shape="poly" id="edge21_Node000010_Node000005" title=" " alt="" coords="515,103,532,138,545,158,560,175,596,200,634,218,631,223,593,205,557,179,541,161,527,141,510,106"/>
+<area shape="poly" id="edge22_Node000010_Node000006" title=" " alt="" coords="570,96,793,122,892,137,939,150,945,160,946,171,937,190,918,207,896,221,893,217,915,202,933,186,941,170,940,162,936,154,891,142,792,128,569,102"/>
+<area shape="poly" id="edge11_Node000010_Node000007" title=" " alt="" coords="447,105,142,154,141,149,446,100"/>
+<area shape="poly" id="edge20_Node000010_Node000009" title=" " alt="" coords="498,106,460,141,408,180,363,204,319,223,317,218,361,199,405,175,456,137,495,102"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="571,152,637,177"/>
+<area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="525,102,579,141,576,146,522,106"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="661,152,723,177"/>
+<area shape="poly" id="edge16_Node000010_Node000012" title=" " alt="" coords="539,102,650,144,648,149,537,107"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="152,152,213,177"/>
+<area shape="poly" id="edge17_Node000010_Node000013" title=" " alt="" coords="450,107,227,154,226,149,449,101"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="238,152,303,177"/>
+<area shape="poly" id="edge18_Node000010_Node000014" title=" " alt="" coords="471,107,317,152,316,147,469,101"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="328,152,395,177"/>
+<area shape="poly" id="edge19_Node000010_Node000015" title=" " alt="" coords="486,106,399,148,396,144,483,102"/>
+</map>
