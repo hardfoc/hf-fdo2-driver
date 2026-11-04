@@ -38,7 +38,14 @@ public:
   int flushes = 0;
   int delays_ms = 0;
 
-  void write(const uint8_t* data, std::size_t length) noexcept {
+  bool write_fails = false; ///< Fault injection: write() reports a serial error, sends nothing.
+  int failed_writes = 0;
+
+  bool write(const uint8_t* data, std::size_t length) noexcept {
+    if (write_fails) {
+      ++failed_writes;
+      return false;
+    }
     for (std::size_t i = 0; i < length; ++i) {
       const char c = static_cast<char>(data[i]);
       if (c == '\n') {
@@ -54,6 +61,7 @@ public:
       }
       rx_line_.clear();
     }
+    return true;
   }
 
   std::size_t read(uint8_t* out, std::size_t max, uint32_t timeout_ms) noexcept {

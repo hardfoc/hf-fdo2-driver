@@ -5,7 +5,8 @@
  * @details The driver only moves bytes; each platform provides a concrete
  *          adapter inheriting this CRTP base and implementing:
  *
- *            - `void write(const uint8_t* data, std::size_t length);`
+ *            - `bool write(const uint8_t* data, std::size_t length);` (true = every
+ *              byte accepted, false = serial error; must return `bool`)
  *            - `std::size_t read(uint8_t* out, std::size_t max, uint32_t timeout_ms);`
  *            - `void flush_rx();`
  *
@@ -21,6 +22,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <utility>
 
 namespace fdo2 {
 
@@ -31,8 +33,17 @@ namespace fdo2 {
 template <typename Derived>
 class UartInterface {
 public:
-    void write(const uint8_t* data, std::size_t length) noexcept {
-        static_cast<Derived*>(this)->write(data, length);
+    /**
+     * @brief Send @p length bytes.
+     * @return `true` when every byte was accepted, `false` on a serial error (the driver then
+     *         fails the call with `DriverError::SerialError` without waiting for a reply).
+     */
+    bool write(const uint8_t* data, std::size_t length) noexcept {
+        static_assert(
+            std::is_same_v<decltype(std::declval<Derived&>().write(data, length)), bool>,
+            "fdo2::UartInterface: the port's write(const uint8_t*, std::size_t) must return bool "
+            "(true = every byte accepted, false = serial error)");
+        return static_cast<Derived*>(this)->write(data, length);
     }
 
     std::size_t read(uint8_t* out, std::size_t max, uint32_t timeout_ms) noexcept {

@@ -12,6 +12,7 @@
 add_executable(hf_fdo2_host_tests
   test_main.cpp
   test_driver.cpp
+  test_write_errors.cpp
 )
 
 target_link_libraries(hf_fdo2_host_tests PRIVATE ${HF_FDO2_TARGET_NAME})

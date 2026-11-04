@@ -6,6 +6,15 @@ code that used the affected API; together they call for a major version bump at 
 
 ## Unreleased
 
+### Breaking
+
+- The port's `write()` returns `bool` (`true` = every byte accepted, `false` = serial error) instead of `void`;
+  a port whose `write()` returns anything else is rejected at compile time. A failed write fails the call with
+  the new `DriverError::SerialError` at once (`SendMeasure()` included): the driver no longer waits out the reply
+  timeout for a command that was never sent and reports `Timeout`. **BREAKING** for ports: change
+  `void write(...)` to `bool write(...)` and return the UART's result. `SerialError` is appended to
+  `DriverError`, so the existing values keep their numbers.
+
 ### Documentation
 
 - The documentation site moved to the HardFOC MkDocs platform: new page set (quickstart, hardware, UART protocol,

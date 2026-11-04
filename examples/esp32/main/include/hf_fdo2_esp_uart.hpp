@@ -48,10 +48,13 @@ public:
         return err;
     }
 
-    void write(const std::uint8_t* data, std::size_t len) noexcept {
-        if (len > 0) {
-            (void)uart_write_bytes(kPort, data, static_cast<int>(len));
+    /// True when the UART took every byte; uart_write_bytes() returns -1 on an error.
+    bool write(const std::uint8_t* data, std::size_t len) noexcept {
+        if (len == 0) {
+            return true;
         }
+        const int n = uart_write_bytes(kPort, data, len);
+        return n >= 0 && static_cast<std::size_t>(n) == len;
     }
 
     /**

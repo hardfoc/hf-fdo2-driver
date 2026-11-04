@@ -20,11 +20,15 @@
 #include "fdo2_uart_interface.hpp"
 
 #include <cctype>
+#include <cstddef>
+#include <cstdint>
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 
 namespace fdo2 {
 namespace detail {
@@ -278,6 +282,12 @@ inline bool IsErroHeader(const char* tok0) noexcept {
  */
 template <typename UartT>
 class Driver {
+    static_assert(std::is_same_v<decltype(std::declval<UartT&>().write(
+                                     static_cast<const uint8_t*>(nullptr), std::size_t{0})),
+                                 bool>,
+                  "fdo2::Driver: the port's write(const uint8_t*, std::size_t) must return bool "
+                  "(true = every byte accepted, false = serial error)");
+
 public:
     explicit Driver(UartT& uart) noexcept : uart_(uart) {}
 
@@ -397,6 +407,7 @@ public:
     enum class Measure : uint8_t { Moxy, Mraw, Version };
 
     /// Drop stale input, then send `#MOXY` / `#MRAW`. Does not wait for the reply.
+    /// @return None, InvalidParameter, or SerialError when the port did not send the command.
     DriverError SendMeasure(Measure m) noexcept {
         last_device_error_ = 0;
         char tx[12];
@@ -405,7 +416,9 @@ public:
             return DriverError::InvalidParameter;
         }
         uart_.flush_rx();
-        uart_.write(reinterpret_cast<const uint8_t*>(tx), std::strlen(tx));
+        if (!uart_.write(reinterpret_cast<const uint8_t*>(tx), std::strlen(tx))) {
+            return DriverError::SerialError;
+        }
         return DriverError::None;
     }
 
@@ -571,7 +584,9 @@ private:
     DriverError TransactLine(const char* tx, char* line, std::size_t line_cap,
                              uint32_t timeout_ms = 0U) noexcept {
         uart_.flush_rx();
-        uart_.write(reinterpret_cast<const uint8_t*>(tx), std::strlen(tx));
+        if (!uart_.write(reinterpret_cast<const uint8_t*>(tx), std::strlen(tx))) {
+            return DriverError::SerialError; // not sent: no reply to wait for
+        }
         const uint32_t tmo = (timeout_ms != 0U) ? timeout_ms : line_timeout_ms_;
         return detail::ReadAsciiLine(uart_, line, line_cap, tmo, crc_required_);
     }

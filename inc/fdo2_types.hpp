@@ -33,6 +33,7 @@ enum class DriverError : uint8_t {
     ProtocolError,
     DeviceError,
     CrcMismatch,  ///< `#CRCE 1` checksum suffix did not match the reply, or was required and missing.
+    SerialError,  ///< The port's `write()` reported that the command was not sent.
 };
 
 constexpr std::string_view ToString(DriverError e) noexcept {
@@ -44,6 +45,7 @@ constexpr std::string_view ToString(DriverError e) noexcept {
         case DriverError::ProtocolError:    return "ProtocolError";
         case DriverError::DeviceError:      return "DeviceError";
         case DriverError::CrcMismatch:      return "CrcMismatch";
+        case DriverError::SerialError:      return "SerialError";
     }
     return "?";
 }

@@ -49,6 +49,7 @@ struct State {
   TickType_t now = 0;
   std::deque<std::pair<TickType_t, std::uint8_t>> rx; ///< (arrival tick, byte), in order
   std::string tx;
+  int write_result = 0; ///< 0: uart_write_bytes() takes every byte; otherwise its return value
 };
 
 inline State& state() {
@@ -88,6 +89,9 @@ inline esp_err_t uart_set_pin(uart_port_t, int, int, int, int) {
 }
 
 inline int uart_write_bytes(uart_port_t, const void* src, std::size_t size) {
+  if (esp_idf_stub::state().write_result != 0) {
+    return esp_idf_stub::state().write_result; // e.g. -1: ESP_FAIL / parameter error
+  }
   esp_idf_stub::state().tx.append(static_cast<const char*>(src), size);
   return static_cast<int>(size);
 }
